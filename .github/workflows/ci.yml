@@ -1,0 +1,33 @@
+name : CI
+
+# on artinya kapan workflow ini otomatis jalan:
+# setiap ada push ke branch main, dan setiap ada pull request yang menuju main
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs: 
+    lint-and-test:
+        # Jalan di server Ubuntu bawaan github, bukan di laptop kita
+        runs-on: ubuntu-latest
+        steps:
+            # Ambil kode dari repo ke server CI
+            - uses: actions/checkout@v4
+            
+            # Pasang Node.js versi 24 di server CI, harus sama dengan versi di laptop
+            # supaya hasil lint/test konsisten antara lokal dan CI
+            - uses: actions/setup-node@v4
+              with: 
+                node-version: 24
+            
+            # Install semua dependency (termasuk BE, FE, Agent)
+            # sekaligus, karena ini monorepo dengan workspaces).
+            - run: npm install
+
+            # ini pemeriksaan utamanya
+            # kalau ada error lint, langkah ini gagal,
+            # dan seluruh pipeline ditandai merah di tab Actions Github
+            - run: npm run lint
