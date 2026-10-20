@@ -1,26 +1,116 @@
+/* ==========================================================
+   File: globals.css
+   Fungsi: Mengatur gaya dasar dan sistem desain seluruh aplikasi
+   Berisi: Variabel warna tema, efek kaca, dan cahaya latar
+   ========================================================== */
+
+/* Mengimpor seluruh utilitas Tailwind CSS */
 @import "tailwindcss";
 
+/* Mendaftarkan varian dark mode kustom berdasarkan kelas .dark pada elemen root */
+@custom-variant dark (&:is(.dark *));
+
+/* Mendaftarkan font Inter sebagai font utama aplikasi */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ==========================================================
+   Variabel Tema Terang (Mode Normal)
+   Diaktifkan secara bawaan saat halaman pertama kali dibuka
+   ========================================================== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-main: #f8fafc;
+  --bg-glass: rgba(255, 255, 255, 0.7);
+  --border-glass: rgba(255, 255, 255, 0.8);
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --highlight: #3b82f6;
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ==========================================================
+   Variabel Tema Gelap (Glassmorphism)
+   Diaktifkan saat pengguna menekan tombol ganti tema
+   ========================================================== */
+.dark {
+  --bg-main: #0a0b14;
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --highlight: #60a5fa;
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Gaya dasar body: warna latar dan teks mengikuti variabel tema aktif */
+/* Transisi 0.4 detik agar pergantian tema terasa mulus */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* ==========================================================
+   Kelas glass-panel
+   Digunakan pada kartu dan panel isi konten
+   Menghasilkan efek kaca buram yang khas Glassmorphism
+   ========================================================== */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--card-shadow);
+  border-radius: 1.5rem;
+}
+
+/* ==========================================================
+   Kelas glass-header
+   Digunakan pada bagian header navigasi atas dan footer
+   Lebih buram dari glass-panel agar konten di bawahnya tertutup
+   ========================================================== */
+.glass-header {
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border-glass);
+}
+
+/* ==========================================================
+   Efek Cahaya Radial Latar Belakang
+   Hanya muncul saat tema gelap aktif
+   bg-glow-1 adalah cahaya biru di pojok kanan atas
+   bg-glow-2 adalah cahaya ungu di pojok kiri bawah
+   ========================================================== */
+
+/* Tersembunyi secara bawaan pada tema terang */
+.bg-glow-1, .bg-glow-2 {
+  display: none;
+}
+
+/* Cahaya biru di pojok kanan atas, hanya aktif saat tema gelap */
+.dark .bg-glow-1 {
+  display: block;
+  position: absolute;
+  top: -10%;
+  right: -5%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(0,0,0,0) 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Cahaya ungu di pojok kiri bawah, hanya aktif saat tema gelap */
+.dark .bg-glow-2 {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, rgba(0,0,0,0) 70%);
+  z-index: -1;
+  pointer-events: none;
 }
