@@ -1,4 +1,4 @@
-version: "3.9"
+# version: "3.9"
 services:
   # Service database utama. Image ini Postgres 16 yang sudah berisi extension
   # TimescaleDB. Jangan pakai postgres:16 biasa, karena tidak punya TimescaleDB.
