@@ -1,0 +1,51 @@
+# version: "3.9"
+services:
+  # Service database utama. Image ini Postgres 16 yang sudah berisi extension
+  # TimescaleDB. Jangan pakai postgres:16 biasa, karena tidak punya TimescaleDB.
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    environment:
+      # Username, password, dan nama database awal yang otomatis dibuat
+      # saat container ini pertama kali nyala.
+      POSTGRES_USER: resilient
+      POSTGRES_PASSWORD: resilient
+      POSTGRES_DB: resilient
+    ports:
+      # Format host:container. Port 5432 di laptop kita diteruskan
+      # ke port 5432 di dalam container, jadi bisa diakses lewat localhost:5432.
+      - "5432:5432"
+    volumes:
+      # Data Postgres disimpan di volume pgdata supaya tidak hilang
+      # setiap kali container di-restart atau laptop dimatikan.
+      - pgdata:/var/lib/postgresql/data
+      # Semua file .sql di folder ./init-db otomatis dijalankan sekali,
+      # hanya saat database ini dibuat pertama kali (database kosong).
+      - ./init-db:/docker-entrypoint-initdb.d
+
+  # Service backend (Express, dikerjakan rayan). Di-build dari Dockerfile
+  # yang ada di apps/backend.
+  backend:
+    build: ./apps/backend
+    restart: unless-stopped
+    # "depends_on: postgres" artinya Docker akan menyalakan postgres dulu
+    # baru backend, urutannya penting karena backend butuh database sudah hidup.
+    depends_on:
+      - postgres
+    environment:
+      # String koneksi ke database. Perhatikan host-nya postgres (nama
+      # service di atas), bukan "localhost", karena dari dalam Docker network,
+      # antar container saling kenal lewat nama service-nya.
+      DATABASE_URL: postgresql://resilient:resilient@postgres:5432/resilient
+      # "${JWT_SECRET}" ini Docker Compose otomatis membaca nilainya dari file
+      # .env di folder yang sama, tidak pernah ditulis nilai asli di file ini,
+      # jadi aman di-commit ke Git tanpa membocorkan secret-nya.
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "3001:3001"
+
+# Volume ini wadah penyimpanan yang dikelola Docker sendiri, terpisah
+# dari file project, supaya data database tidak ikut terhapus kalau kita
+# hapus folder project.
+volumes:
+  pgdata:
