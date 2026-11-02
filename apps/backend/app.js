@@ -15,6 +15,10 @@ app.use(express.json());
 // Inisialisasi Database
 initDb();
 
+// Import dan jalankan swagger
+const setupSwagger = require('./config/swagger');
+setupSwagger(app);
+
 // Main Routes
 app.use('/auth', authRoutes);
 app.use('/services', serviceRoutes);
