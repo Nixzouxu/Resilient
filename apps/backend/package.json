@@ -1,11 +1,16 @@
 {
-    "name": "resilient",
-    "private": true,
-    "version": "0.1.0",
-    "workspaces": ["apps/*"],
-    "scripts": {
-      "lint": "npm run lint --workspace=apps/frontend",
-      "dev:frontend": "npm run dev --workspace=apps/frontend",
-      "dev:agent": "npm run start:dev --workspace=apps/agent"
-    }
+  "name": "resilient",
+  "private": true,
+  "version": "0.1.0",
+  "main": "app.js",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "lint": "npm run lint --workspace=apps/frontend",
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "start": "node ./app.js",
+    "dev": "nodemon ./app.js",
+    "dev:agent": "npm run start:dev --workspace=apps/agent"
   }
+}

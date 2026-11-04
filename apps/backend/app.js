@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-const { initDb } = require('./config/db');
+const { setupTimescaleDB } = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const serviceRoutes = require('./routes/service.routes');
 const agentRoutes = require('./routes/agent.routes');
@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 // Inisialisasi Database
-initDb();
+setupTimescaleDB();
 
 // Import dan jalankan swagger
 const setupSwagger = require('./config/swagger');
