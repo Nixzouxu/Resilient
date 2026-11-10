@@ -36,7 +36,7 @@ services:
       # String koneksi ke database. Perhatikan host-nya postgres (nama
       # service di atas), bukan "localhost", karena dari dalam Docker network,
       # antar container saling kenal lewat nama service-nya.
-      DATABASE_URL: postgresql://resilient:resilient@postgres:5432/resilient
+      DATABASE_URL: postgresql://resilient:resilient@postgres:5433/resilient
       # "${JWT_SECRET}" ini Docker Compose otomatis membaca nilainya dari file
       # .env di folder yang sama, tidak pernah ditulis nilai asli di file ini,
       # jadi aman di-commit ke Git tanpa membocorkan secret-nya.
