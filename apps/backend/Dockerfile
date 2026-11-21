@@ -11,7 +11,7 @@ RUN npm install
 COPY . .
 
 # Ekspos port yang digunakan aplikasi
-EXPOSE 5000
+EXPOSE 3001
 
 # Jalankan aplikasi menggunakan script "start"
 CMD ["npm", "start"]
