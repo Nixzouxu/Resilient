@@ -1,16 +1,23 @@
 {
-  "name": "resilient",
-  "private": true,
-  "version": "0.1.0",
+  "name": "resilient-backend",
+  "version": "1.0.0",
+  "description": "Backend API & Ingest Service for Resilient Observability Platform",
   "main": "app.js",
-  "workspaces": [
-    "apps/*"
-  ],
   "scripts": {
-    "lint": "npm run lint --workspace=apps/frontend",
-    "dev:frontend": "npm run dev --workspace=apps/frontend",
-    "start": "node ./app.js",
-    "dev": "nodemon ./app.js",
-    "dev:agent": "npm run start:dev --workspace=apps/agent"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
   }
 }
