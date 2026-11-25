@@ -23,8 +23,13 @@ setupSwagger(app);
 app.use('/auth', authRoutes);
 app.use('/services', serviceRoutes);
 app.use('/agent', agentRoutes); // memuat rute untuk agent
+app.use('/overview', overviewRoutes); // memuat rute untuk overview
 
 const PORT = process.env.PORT || 5000;
+
+// udah dihapus console.log yang mencetak URL database (ada ada saja suki ini karena bisa membocorkan info sensitif di log produksi, nak kena rodok mas amba ke?)
+
 app.listen(PORT, () => {
-    console.log(`🚀 Resilient Backend API berjalan di port ${PORT}`);
+    console.log(`Resilient Backend berjalan di http://localhost:${PORT}`);
+    console.log(`Swagger docs tersedia di http://localhost:${PORT}/api-docs`);
 });

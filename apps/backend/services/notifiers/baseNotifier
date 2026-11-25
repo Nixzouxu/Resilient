@@ -1,0 +1,20 @@
+class BaseNotifier {
+  constructor(tenantConfig) {
+    if (new.target === BaseNotifier) {
+      throw new Error("BaseNotifier adalah abstract class.");
+    }
+    this._tenantConfig = tenantConfig; // Encapsulation
+  }
+
+  async send(alert) {
+    throw new Error("Method 'send()' harus di-implementasikan oleh child class.");
+  }
+
+  formatMessage(alert) {
+    return `🚨 *ALERTA: ${alert.serviceName}*\n` +
+      `Status: ${alert.status}\n` +
+      `Waktu: ${alert.time}\n` +
+      `Tenant: ${alert.tenantName}`;
+  }
+}
+module.exports = BaseNotifier;
