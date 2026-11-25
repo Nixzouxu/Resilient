@@ -111,7 +111,7 @@ const swaggerDefinition = {
         },
 
         // ---- INGEST ROUTES ----
-        '/health-check': {
+        '/agent/health-checks/ingest': {
             post: {
                 summary: 'Ingest data health check dari Agent',
                 tags: ['Ingest'],

@@ -15,6 +15,7 @@ router.get('/', async (req, res) => {
     );
     res.json({ data: services.rows });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Gagal mengambil data service.' });
   }
 });
@@ -22,6 +23,10 @@ router.get('/', async (req, res) => {
 // POST /services - Tambah service baru untuk dipantau
 router.post('/', async (req, res) => {
   const { name, type, endpoint_url, container_name, check_interval } = req.body;
+
+  if (!name || !type) {
+    return res.status(400).json({ message: 'Field name dan type wajib diisi.' });
+  }
 
   try {
     const newService = await pgPool.query(
@@ -31,16 +36,22 @@ router.post('/', async (req, res) => {
     );
     res.status(201).json({ message: 'Service berhasil ditambahkan.', data: newService.rows[0] });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Gagal menambahkan service.' });
   }
 });
 
 // DELETE /services/:id - Hapus service
 router.delete('/:id', async (req, res) => {
+  const serviceId = Number(req.params.id);
+  if (!Number.isInteger(serviceId) || serviceId <= 0) {
+    return res.status(400).json({ message: 'ID service tidak valid.' });
+  }
+
   try {
     const deleteRes = await pgPool.query(
       'DELETE FROM services WHERE id = $1 AND tenant_id = $2 RETURNING id',
-      [req.params.id, req.user.tenantId]
+      [serviceId, req.user.tenantId]
     );
 
     if (deleteRes.rows.length === 0) {
@@ -49,6 +60,7 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Service berhasil dihapus.' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Gagal menghapus service.' });
   }
 });

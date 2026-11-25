@@ -62,8 +62,8 @@ router.post('/health-checks/ingest', async (req, res) => {
 
         // Update status di tabel services
         await pgPool.query(
-            'UPDATE services SET consecutive_failures = $1, status = $2 WHERE id = $3',
-            [newFailures, newStatus, serviceId]
+            'UPDATE services SET consecutive_failures = $1, status = $2 WHERE id = $3 AND tenant_id = $4',
+            [newFailures, newStatus, serviceId, tenantId]
         );
 
         res.json({
