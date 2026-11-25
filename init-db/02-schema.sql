@@ -34,7 +34,3 @@ CREATE TABLE IF NOT EXISTS services (
 
 -- Index untuk mempercepat query agent berdasarkan tenant
 CREATE INDEX IF NOT EXISTS idx_services_tenant_id ON services(tenant_id);
-
--- isi kolom telegram_chat_id di tabel tenants untuk menyimpan ID chat Telegram
-ALTER TABLE tenants ADD COLUMN IF NOT EXISTS telegram_chat_id VARCHAR(255);
-ALTER TABLE services ADD COLUMN IF NOT EXISTS last_alerted_at TIMESTAMPTZ;
