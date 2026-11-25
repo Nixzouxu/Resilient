@@ -41,6 +41,61 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PATCH /services/:id - Ubah data service milik tenant yang sedang login
+router.patch('/:id', async (req, res) => {
+  const serviceId = Number(req.params.id);
+  if (!Number.isInteger(serviceId) || serviceId <= 0) {
+    return res.status(400).json({ message: 'ID service tidak valid.' });
+  }
+
+  const allowedFields = ['name', 'type', 'endpoint_url', 'container_name', 'check_interval'];
+  const updates = [];
+  const values = [];
+  let paramIndex = 1;
+
+  for (const field of allowedFields) {
+    if (Object.prototype.hasOwnProperty.call(req.body, field) && req.body[field] !== undefined) {
+      if (field === 'check_interval') {
+        const intervalVal = Number(req.body[field]);
+        if (!Number.isInteger(intervalVal) || intervalVal <= 0) {
+          return res.status(400).json({ message: 'check_interval harus berupa bilangan bulat positif.' });
+        }
+        updates.push(`${field} = $${paramIndex}`);
+        values.push(intervalVal);
+      } else {
+        updates.push(`${field} = $${paramIndex}`);
+        values.push(req.body[field]);
+      }
+      paramIndex += 1;
+    }
+  }
+
+  if (updates.length === 0) {
+    return res.status(400).json({ message: 'Tidak ada field valid yang dikirim untuk diperbarui.' });
+  }
+
+  values.push(serviceId, req.user.tenantId);
+
+  try {
+    const updateRes = await pgPool.query(
+      `UPDATE services
+       SET ${updates.join(', ')}
+       WHERE id = $${paramIndex} AND tenant_id = $${paramIndex + 1}
+       RETURNING *`,
+      values
+    );
+
+    if (updateRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Service tidak ditemukan atau akses dilarang.' });
+    }
+
+    res.json({ message: 'Service berhasil diperbarui.', data: updateRes.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Gagal memperbarui service.' });
+  }
+});
+
 // DELETE /services/:id - Hapus service
 router.delete('/:id', async (req, res) => {
   const serviceId = Number(req.params.id);

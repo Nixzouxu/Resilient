@@ -3,19 +3,18 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const rateLimit = require('express-rate-limit');
 const { pgPool } = require('../config/db');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || !secret.trim()) {
+    throw new Error('FATAL: Environment variable JWT_SECRET wajib diisi dan tidak boleh kosong.');
+  }
+  return secret;
+}
 
-// Rate Limiter untuk endpoint login (mencegah brute-force attack)
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 menit
-  max: 5, // Maksimal 5 percobaan login gagal per IP
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: 'Terlalu banyak percobaan login. Silakan coba lagi setelah 15 menit.' }
-});
+// Gagal cepat saat modul/aplikasi dimuat jika JWT_SECRET belum di-set
+getJwtSecret();
 
 // 1. Register Tenant & User
 router.post('/register', async (req, res) => {
@@ -29,6 +28,7 @@ router.post('/register', async (req, res) => {
 
   try {
     await client.query('BEGIN');
+
     const apiKey = 'rsl_' + crypto.randomBytes(16).toString('hex');
 
     const tenantRes = await client.query(
@@ -58,17 +58,19 @@ router.post('/register', async (req, res) => {
   } catch (err) {
     await client.query('ROLLBACK');
     console.error(err);
+
     if (err.code === '23505') {
       return res.status(409).json({ message: 'Email sudah terdaftar.' });
     }
+
     res.status(500).json({ message: 'Gagal meregistrasi user/tenant.' });
   } finally {
     client.release();
   }
 });
 
-// 2. Login User (Dipasang loginLimiter di sini)
-router.post('/login', loginLimiter, async (req, res) => {
+// 2. Login User
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -76,6 +78,8 @@ router.post('/login', loginLimiter, async (req, res) => {
   }
 
   try {
+    const jwtSecret = getJwtSecret();
+
     const userRes = await pgPool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userRes.rows.length === 0) {
       return res.status(400).json({ message: 'Email atau password salah.' });
@@ -89,7 +93,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 
     const token = jwt.sign(
       { userId: user.id, tenantId: user.tenant_id, role: user.role },
-      JWT_SECRET,
+      jwtSecret,
       { expiresIn: '24h' }
     );
 
