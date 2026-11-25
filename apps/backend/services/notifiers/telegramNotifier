@@ -27,7 +27,7 @@ class TelegramNotifier extends BaseNotifier {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             console.log(`✅ Alert Telegram berhasil dikirim ke ${this.chatId}`);
         } catch (error) {
-            console.error('❌ Gagal mengirim alert Telegram, dasar suki:', error.message);
+            console.error('❌ Gagal mengirim alert Telegram, dasar suki liar:', error.message);
         }
     }
 }
