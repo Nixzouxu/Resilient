@@ -6,6 +6,61 @@ const authenticateJWT = require('../middleware/auth.middleware');
 // Gunakan JWT Guard untuk semua endpoint service
 router.use(authenticateJWT);
 
+const { pgPool, timescalePool } = require('../config/db');
+
+const RANGE_INTERVAL_MAP = {
+  '24h': '24 hours',
+  '7d': '7 days',
+  '30d': '30 days'
+};
+
+// GET /services/:id/health-checks?range=24h (24h | 7d | 30d)
+router.get('/:id/health-checks', async (req, res) => {
+  const serviceId = Number(req.params.id);
+  if (!Number.isInteger(serviceId) || serviceId <= 0) {
+    return res.status(400).json({ message: 'ID service tidak valid.' });
+  }
+
+  const rangeParam = String(req.query.range || '24h').toLowerCase();
+  const interval = RANGE_INTERVAL_MAP[rangeParam];
+  if (!interval) {
+    return res.status(400).json({
+      message: 'Parameter range tidak valid. Gunakan salah satu dari: 24h, 7d, 30d.'
+    });
+  }
+
+  try {
+    // 1. Pastikan service ada dan benar-benar milik tenant yang login
+    const serviceRes = await pgPool.query(
+      'SELECT id, name FROM services WHERE id = $1 AND tenant_id = $2',
+      [serviceId, req.user.tenantId]
+    );
+    if (serviceRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Service tidak ditemukan atau akses dilarang.' });
+    }
+
+    // 2. Ambil riwayat health check dari TimescaleDB urut waktu naik (bagus untuk chart)
+    const checksRes = await timescalePool.query(
+      `SELECT time, status, response_time_ms
+       FROM health_checks
+       WHERE service_id = $1
+         AND tenant_id = $2
+         AND time >= NOW() - ($3::interval)
+       ORDER BY time ASC`,
+      [serviceId, req.user.tenantId, interval]
+    );
+
+    res.json({
+      service_id: serviceId,
+      range: rangeParam,
+      data: checksRes.rows
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Gagal mengambil riwayat health checks.' });
+  }
+});
+
 // GET /services - Ambil daftar service khusus milik tenant yang sedang login (Multi-Tenant Isolation)
 router.get('/', async (req, res) => {
   try {

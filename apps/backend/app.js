@@ -23,6 +23,7 @@ setupSwagger(app);
 app.use('/auth', authRoutes);
 app.use('/services', serviceRoutes);
 app.use('/agent', agentRoutes); // memuat rute untuk agent
+app.use('/overview', overviewRoutes); // memuat rute untuk overview
 
 const PORT = process.env.PORT || 5000;
 
