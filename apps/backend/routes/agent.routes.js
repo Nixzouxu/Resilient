@@ -1,13 +1,24 @@
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 const { pgPool, timescalePool } = require('../config/db');
 const authenticateApiKey = require('../middleware/apiKey.middleware');
 
 // Gunakan API Key Guard untuk SEMUA rute di file ini
 router.use(authenticateApiKey);
 
-// 1. GET /agent/services - Agent meminta daftar service yang harus dipantau
-router.get('/agent/services', async (req, res) => {
+// Rate Limiter untuk endpoint ingest (mencegah flooding dari agent)
+const ingestLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 menit
+    max: 120, // Maksimal 120 request per menit per API Key
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.headers['x-api-key'] || req.ip,
+    message: { message: 'Terlalu banyak request ingest. Rate limit tercapai.' }
+});
+
+// 1. GET /services (Mounted di /agent, jadi endpoint aslinya /agent/services)
+router.get('/services', async (req, res) => {
     try {
         const result = await pgPool.query(
             'SELECT id, type, endpoint_url, container_name, check_interval FROM services WHERE tenant_id = $1',
@@ -20,8 +31,8 @@ router.get('/agent/services', async (req, res) => {
     }
 });
 
-// 2. POST /health-checks/ingest - Agent mengirim data hasil pantauan
-router.post('/health-checks/ingest', async (req, res) => {
+// 2. POST /health-checks/ingest (Dipasang ingestLimiter di sini)
+router.post('/health-checks/ingest', ingestLimiter, async (req, res) => {
     const { serviceId, status, responseTimeMs } = req.body;
     const tenantId = req.tenantId;
 
@@ -37,18 +48,18 @@ router.post('/health-checks/ingest', async (req, res) => {
         }
 
         const service = serviceRes.rows[0];
-        const cleanStatus = status.toLowerCase(); // Memaksa format "up" atau "down"
+        const cleanStatus = status.toLowerCase();
 
-        // B. Insert ke TimescaleDB (Time-series)
+        // B. Insert ke TimescaleDB
         await timescalePool.query(
             `INSERT INTO health_checks (time, service_id, tenant_id, status, response_time_ms)
-       VALUES (NOW(), $1, $2, $3, $4)`,
+             VALUES (NOW(), $1, $2, $3, $4)`,
             [serviceId, tenantId, cleanStatus, responseTimeMs]
         );
 
-        // C. Evaluasi threshold (3x down berturut-turut)
-        let newFailures = service.consecutive_failures;
-        let newStatus = service.status;
+        // C. Evaluasi threshold
+        let newFailures = service.consecutive_failures || 0;
+        let newStatus = service.status || 'HEALTHY';
 
         if (cleanStatus === 'down') {
             newFailures += 1;
@@ -60,7 +71,6 @@ router.post('/health-checks/ingest', async (req, res) => {
             newStatus = 'HEALTHY';
         }
 
-        // Update status di tabel services
         await pgPool.query(
             'UPDATE services SET consecutive_failures = $1, status = $2 WHERE id = $3 AND tenant_id = $4',
             [newFailures, newStatus, serviceId, tenantId]

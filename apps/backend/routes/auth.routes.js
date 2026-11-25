@@ -3,9 +3,19 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 const { pgPool } = require('../config/db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+
+// Rate Limiter untuk endpoint login (mencegah brute-force attack)
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 menit
+  max: 5, // Maksimal 5 percobaan login gagal per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Terlalu banyak percobaan login. Silakan coba lagi setelah 15 menit.' }
+});
 
 // 1. Register Tenant & User
 router.post('/register', async (req, res) => {
@@ -19,18 +29,14 @@ router.post('/register', async (req, res) => {
 
   try {
     await client.query('BEGIN');
-
-    // Generate API Key acak unik untuk tenant
     const apiKey = 'rsl_' + crypto.randomBytes(16).toString('hex');
 
-    // Simpan Tenant baru
     const tenantRes = await client.query(
       'INSERT INTO tenants (name, api_key) VALUES ($1, $2) RETURNING id, name, api_key',
       [tenant_name, apiKey]
     );
     const newTenant = tenantRes.rows[0];
 
-    // Hash password & simpan User
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
     const userName = name || email.split('@')[0];
@@ -52,19 +58,17 @@ router.post('/register', async (req, res) => {
   } catch (err) {
     await client.query('ROLLBACK');
     console.error(err);
-
     if (err.code === '23505') {
       return res.status(409).json({ message: 'Email sudah terdaftar.' });
     }
-
     res.status(500).json({ message: 'Gagal meregistrasi user/tenant.' });
   } finally {
     client.release();
   }
 });
 
-// 2. Login User
-router.post('/login', async (req, res) => {
+// 2. Login User (Dipasang loginLimiter di sini)
+router.post('/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -83,7 +87,6 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Email atau password salah.' });
     }
 
-    // Sign JWT Token (membawa tenantId untuk row-level filtering di route dashboard)
     const token = jwt.sign(
       { userId: user.id, tenantId: user.tenant_id, role: user.role },
       JWT_SECRET,
