@@ -5,7 +5,16 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { pgPool } = require('../config/db');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || !secret.trim()) {
+    throw new Error('FATAL: Environment variable JWT_SECRET wajib diisi dan tidak boleh kosong.');
+  }
+  return secret;
+}
+
+// Gagal cepat saat modul/aplikasi dimuat jika JWT_SECRET belum di-set
+getJwtSecret();
 
 // 1. Register Tenant & User
 router.post('/register', async (req, res) => {
@@ -20,17 +29,14 @@ router.post('/register', async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // Generate API Key acak unik untuk tenant
     const apiKey = 'rsl_' + crypto.randomBytes(16).toString('hex');
 
-    // Simpan Tenant baru
     const tenantRes = await client.query(
       'INSERT INTO tenants (name, api_key) VALUES ($1, $2) RETURNING id, name, api_key',
       [tenant_name, apiKey]
     );
     const newTenant = tenantRes.rows[0];
 
-    // Hash password & simpan User
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
     const userName = name || email.split('@')[0];
@@ -72,6 +78,8 @@ router.post('/login', async (req, res) => {
   }
 
   try {
+    const jwtSecret = getJwtSecret();
+
     const userRes = await pgPool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userRes.rows.length === 0) {
       return res.status(400).json({ message: 'Email atau password salah.' });
@@ -83,10 +91,9 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Email atau password salah.' });
     }
 
-    // Sign JWT Token (membawa tenantId untuk row-level filtering di route dashboard)
     const token = jwt.sign(
       { userId: user.id, tenantId: user.tenant_id, role: user.role },
-      JWT_SECRET,
+      jwtSecret,
       { expiresIn: '24h' }
     );
 

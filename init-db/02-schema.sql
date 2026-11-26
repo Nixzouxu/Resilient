@@ -20,17 +20,21 @@ CREATE TABLE IF NOT EXISTS users (
 -- 3. Tabel Services (Target yang dipantau oleh Agent)
 CREATE TABLE IF NOT EXISTS services (
     id SERIAL PRIMARY KEY,
-    tenant_id INTEGER REFERENCES tenants(id) ON DELETE CASCADE,
+    tenant_id INT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
-    type VARCHAR(50) NOT NULL DEFAULT 'http', -- 'http' atau 'docker'
+    type VARCHAR(50) NOT NULL,
     endpoint_url TEXT,
     container_name VARCHAR(255),
-    check_interval INTEGER NOT NULL DEFAULT 30,
-    status VARCHAR(20) NOT NULL DEFAULT 'unknown', -- 'up', 'down', 'unknown'
-    consecutive_failures INTEGER NOT NULL DEFAULT 0,
+    check_interval INT DEFAULT 30,
+    status VARCHAR(20) NOT NULL DEFAULT 'UNKNOWN',
+    consecutive_failures INT NOT NULL DEFAULT 0,
     last_checked_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Index untuk mempercepat query agent berdasarkan tenant
 CREATE INDEX IF NOT EXISTS idx_services_tenant_id ON services(tenant_id);
+
+-- isi kolom telegram_chat_id di tabel tenants untuk menyimpan ID chat Telegram
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS telegram_chat_id VARCHAR(255);
+ALTER TABLE services ADD COLUMN IF NOT EXISTS last_alerted_at TIMESTAMPTZ;
