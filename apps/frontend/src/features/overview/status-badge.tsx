@@ -1,4 +1,4 @@
-import { CheckCircle2, HelpCircle, XCircle } from "lucide-react";
+import { CircleCheck, CircleDashed, CircleX } from "lucide-react";
 import { getServiceStatusLabel } from "./formatters";
 import type { ServiceStatus } from "./types";
 
@@ -18,7 +18,11 @@ export function StatusBadge({ status }: StatusBadgeProps) {
           color: "var(--rs-ok)",
         }}
       >
-        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <CircleCheck
+          className="h-3.5 w-3.5 shrink-0"
+          strokeWidth={1.75}
+          aria-hidden="true"
+        />
         {label}
       </span>
     );
@@ -33,7 +37,11 @@ export function StatusBadge({ status }: StatusBadgeProps) {
           color: "var(--rs-bad)",
         }}
       >
-        <XCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <CircleX
+          className="h-3.5 w-3.5 shrink-0"
+          strokeWidth={1.75}
+          aria-hidden="true"
+        />
         {label}
       </span>
     );
@@ -47,7 +55,11 @@ export function StatusBadge({ status }: StatusBadgeProps) {
         color: "var(--rs-warn)",
       }}
     >
-      <HelpCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      <CircleDashed
+        className="h-3.5 w-3.5 shrink-0"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
       {label}
     </span>
   );

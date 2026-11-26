@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MotionConfig } from "framer-motion";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { OctagonAlert, RotateCw } from "lucide-react";
 import { useTheme } from "@/features/auth/use-theme";
 import { DashboardShell } from "./dashboard-shell";
 import { IncidentTimeline } from "./incident-timeline";
@@ -71,13 +71,14 @@ export function OverviewContainer() {
           >
             <div className="flex items-start gap-3">
               <span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
                 style={{
                   backgroundColor: "var(--rs-bad-soft)",
+                  borderColor: "var(--rs-bad-soft)",
                   color: "var(--rs-bad)",
                 }}
               >
-                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+                <OctagonAlert className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
               </span>
               <div>
                 <h2
@@ -101,7 +102,7 @@ export function OverviewContainer() {
                 color: "var(--rs-on-accent)",
               }}
             >
-              <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+              <RotateCw className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
               Coba lagi
             </button>
           </section>

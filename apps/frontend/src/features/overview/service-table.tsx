@@ -39,13 +39,14 @@ export function ServiceTable({
           style={{ backgroundColor: "var(--rs-surface-inset)" }}
         >
           <span
-            className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl"
+            className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border"
             style={{
-              backgroundColor: "var(--rs-accent-soft)",
-              color: "var(--rs-accent)",
+              backgroundColor: "var(--rs-surface)",
+              borderColor: "var(--rs-line)",
+              color: "var(--rs-text-2)",
             }}
           >
-            <Server className="h-5 w-5" aria-hidden="true" />
+            <Server className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
           </span>
           <p className="text-sm font-semibold" style={{ color: "var(--rs-text-1)" }}>
             Belum ada layanan terdaftar

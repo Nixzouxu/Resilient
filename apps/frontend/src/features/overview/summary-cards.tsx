@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Activity, AlertTriangle, Clock, Server } from "lucide-react";
+import { HeartPulse, History, Server, ServerOff } from "lucide-react";
 import type { OverviewMetrics } from "./types";
 
 interface SummaryCardsProps {
@@ -16,27 +16,23 @@ export function SummaryCards({ metrics }: SummaryCardsProps) {
       ? "-"
       : `${metrics.uptime_24h_pct.toFixed(1)}%`;
 
+  const hasDown = metrics.down_services > 0;
+
   const cards = [
     {
       label: "Total layanan",
       value: String(metrics.total_services),
       note: "Layanan terdaftar aktif",
       icon: Server,
-      iconBg: "var(--rs-accent-soft)",
-      iconColor: "var(--rs-accent)",
+      isAlert: false,
       useDisplayFont: false,
     },
     {
       label: "Layanan down",
       value: String(metrics.down_services),
-      note:
-        metrics.down_services > 0
-          ? "Butuh pengecekan segera"
-          : "Tidak ada gangguan",
-      icon: AlertTriangle,
-      iconBg:
-        metrics.down_services > 0 ? "var(--rs-bad-soft)" : "var(--rs-ok-soft)",
-      iconColor: metrics.down_services > 0 ? "var(--rs-bad)" : "var(--rs-ok)",
+      note: hasDown ? "Butuh pengecekan segera" : "Tidak ada gangguan",
+      icon: ServerOff,
+      isAlert: hasDown,
       useDisplayFont: false,
     },
     {
@@ -46,18 +42,16 @@ export function SummaryCards({ metrics }: SummaryCardsProps) {
         metrics.uptime_24h_pct === null
           ? "Belum ada data 24 jam"
           : "Rata-rata seluruh layanan",
-      icon: Activity,
-      iconBg: "var(--rs-ok-soft)",
-      iconColor: "var(--rs-ok)",
+      icon: HeartPulse,
+      isAlert: false,
       useDisplayFont: true,
     },
     {
       label: "Insiden minggu ini",
       value: String(metrics.incidents_this_week),
       note: "Catatan gagal 7 hari terakhir",
-      icon: Clock,
-      iconBg: "var(--rs-warn-soft)",
-      iconColor: "var(--rs-warn)",
+      icon: History,
+      isAlert: false,
       useDisplayFont: false,
     },
   ];
@@ -93,14 +87,20 @@ export function SummaryCards({ metrics }: SummaryCardsProps) {
               >
                 {card.label}
               </p>
+              {/* Wadah ikon netral agar tenang; warna merah hanya muncul saat ada layanan down */}
               <span
-                className="flex h-8 w-8 items-center justify-center rounded-xl"
+                className="flex h-8 w-8 items-center justify-center rounded-xl border"
                 style={{
-                  backgroundColor: card.iconBg,
-                  color: card.iconColor,
+                  backgroundColor: card.isAlert
+                    ? "var(--rs-bad-soft)"
+                    : "var(--rs-surface-inset)",
+                  borderColor: card.isAlert
+                    ? "var(--rs-bad-soft)"
+                    : "var(--rs-line)",
+                  color: card.isAlert ? "var(--rs-bad)" : "var(--rs-text-2)",
                 }}
               >
-                <Icon className="h-4 w-4" aria-hidden="true" />
+                <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               </span>
             </div>
 
@@ -110,7 +110,9 @@ export function SummaryCards({ metrics }: SummaryCardsProps) {
                   ? "rs-font-display text-4xl"
                   : "text-[28px] font-semibold tracking-tight"
               }`}
-              style={{ color: "var(--rs-text-1)" }}
+              style={{
+                color: card.isAlert ? "var(--rs-bad)" : "var(--rs-text-1)",
+              }}
             >
               {card.value}
             </p>

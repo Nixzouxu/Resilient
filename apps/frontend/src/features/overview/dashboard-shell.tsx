@@ -3,13 +3,13 @@ import Link from "next/link";
 import {
   Activity,
   Bell,
-  FileText,
-  LayoutDashboard,
+  Gauge,
   LogOut,
   Moon,
   Server,
-  Settings,
+  SlidersHorizontal,
   Sun,
+  Terminal,
 } from "lucide-react";
 import type { AuthUser } from "@/features/auth/types";
 import type { Theme } from "@/features/auth/use-theme";
@@ -27,17 +27,17 @@ interface DashboardShellProps {
 interface NavItem {
   label: string;
   href: string;
-  icon: typeof LayoutDashboard;
+  icon: typeof Gauge;
   active?: boolean;
   disabled?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Ringkasan", href: "/dashboard", icon: LayoutDashboard, active: true },
+  { label: "Ringkasan", href: "/dashboard", icon: Gauge, active: true },
   { label: "Layanan", href: "#tabel-layanan", icon: Server },
   { label: "Peringatan", href: "#", icon: Bell, disabled: true },
-  { label: "Log", href: "#", icon: FileText, disabled: true },
-  { label: "Setelan", href: "#", icon: Settings, disabled: true },
+  { label: "Log", href: "#", icon: Terminal, disabled: true },
+  { label: "Setelan", href: "#", icon: SlidersHorizontal, disabled: true },
 ];
 
 export function DashboardShell({
@@ -68,13 +68,14 @@ export function DashboardShell({
             className="mb-6 flex items-center gap-2.5 rounded-xl px-2 py-1.5"
           >
             <span
-              className="flex h-9 w-9 items-center justify-center rounded-xl"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border"
               style={{
-                backgroundColor: "var(--rs-accent-soft)",
+                backgroundColor: "var(--rs-surface)",
+                borderColor: "var(--rs-line)",
                 color: "var(--rs-accent)",
               }}
             >
-              <Activity className="h-5 w-5" aria-hidden="true" />
+              <Activity className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
             </span>
             <div>
               <p
@@ -102,7 +103,7 @@ export function DashboardShell({
                     style={{ color: "var(--rs-text-3)" }}
                   >
                     <span className="flex items-center gap-2.5">
-                      <Icon className="h-4 w-4" aria-hidden="true" />
+                      <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                       {item.label}
                     </span>
                     <span className="text-[11px]">Segera</span>
@@ -122,7 +123,7 @@ export function DashboardShell({
                     color: item.active ? "var(--rs-accent)" : "var(--rs-text-2)",
                   }}
                 >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                   {item.label}
                 </Link>
               );
@@ -160,13 +161,14 @@ export function DashboardShell({
         >
           <div className="flex items-center gap-2.5">
             <span
-              className="flex h-8 w-8 items-center justify-center rounded-lg lg:hidden"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border lg:hidden"
               style={{
-                backgroundColor: "var(--rs-accent-soft)",
+                backgroundColor: "var(--rs-surface)",
+                borderColor: "var(--rs-line)",
                 color: "var(--rs-accent)",
               }}
             >
-              <Activity className="h-4 w-4" aria-hidden="true" />
+              <Activity className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             </span>
             <h1
               className="text-lg font-semibold tracking-tight"
@@ -194,12 +196,12 @@ export function DashboardShell({
             >
               {theme === "dark" ? (
                 <>
-                  <Sun className="h-4 w-4" aria-hidden="true" />
+                  <Sun className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                   <span className="hidden sm:inline">Terang</span>
                 </>
               ) : (
                 <>
-                  <Moon className="h-4 w-4" aria-hidden="true" />
+                  <Moon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                   <span className="hidden sm:inline">Gelap</span>
                 </>
               )}
@@ -239,7 +241,7 @@ export function DashboardShell({
                 color: "var(--rs-text-2)",
               }}
             >
-              <LogOut className="h-4 w-4" aria-hidden="true" />
+              <LogOut className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               <span>Keluar</span>
             </button>
           </div>
@@ -271,7 +273,7 @@ export function DashboardShell({
                 className="flex flex-col items-center gap-0.5 px-2 py-1 text-[11px] opacity-50"
                 style={{ color: "var(--rs-text-3)" }}
               >
-                <Icon className="h-4 w-4" aria-hidden="true" />
+                <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 {item.label}
               </span>
             );
@@ -285,7 +287,7 @@ export function DashboardShell({
                 color: item.active ? "var(--rs-accent)" : "var(--rs-text-2)",
               }}
             >
-              <Icon className="h-4 w-4" aria-hidden="true" />
+              <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               {item.label}
             </Link>
           );

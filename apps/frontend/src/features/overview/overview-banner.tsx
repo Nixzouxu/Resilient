@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { AlertTriangle, CheckCircle2, HelpCircle, RefreshCw } from "lucide-react";
+import { CircleDashed, RotateCw, ShieldAlert, ShieldCheck } from "lucide-react";
 import { getBannerCopy } from "./formatters";
 import type { OverviewMetrics } from "./types";
 
@@ -65,11 +65,11 @@ export function OverviewBanner({
             style={badgeStyle}
           >
             {isUnknown ? (
-              <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
+              <CircleDashed className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
             ) : isDegraded ? (
-              <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+              <ShieldAlert className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
             ) : (
-              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+              <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
             )}
             {copy.badge}
           </span>
@@ -89,8 +89,9 @@ export function OverviewBanner({
           disabled={isRefreshing}
           className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-medium text-[#edf0fb] backdrop-blur-sm transition-colors hover:bg-white/15 disabled:opacity-60"
         >
-          <RefreshCw
+          <RotateCw
             className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+            strokeWidth={1.75}
             aria-hidden="true"
           />
           {isRefreshing ? "Memuat..." : "Muat ulang"}

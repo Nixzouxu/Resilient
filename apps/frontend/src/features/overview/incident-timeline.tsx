@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { OctagonAlert, ShieldCheck } from "lucide-react";
 import { formatTimeWib } from "./formatters";
 import type { IncidentItem } from "./types";
 
@@ -27,13 +27,14 @@ export function IncidentTimeline({ incidents }: IncidentTimelineProps) {
           style={{ backgroundColor: "var(--rs-surface-inset)" }}
         >
           <span
-            className="mb-2 flex h-10 w-10 items-center justify-center rounded-full"
+            className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border"
             style={{
-              backgroundColor: "var(--rs-ok-soft)",
+              backgroundColor: "var(--rs-surface)",
+              borderColor: "var(--rs-line)",
               color: "var(--rs-ok)",
             }}
           >
-            <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+            <ShieldCheck className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
           </span>
           <p className="text-sm font-medium" style={{ color: "var(--rs-text-1)" }}>
             Tidak ada insiden
@@ -55,13 +56,14 @@ export function IncidentTimeline({ incidents }: IncidentTimelineProps) {
             >
               <div className="flex items-start gap-2.5">
                 <span
-                  className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                  className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border"
                   style={{
                     backgroundColor: "var(--rs-bad-soft)",
+                    borderColor: "var(--rs-bad-soft)",
                     color: "var(--rs-bad)",
                   }}
                 >
-                  <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                  <OctagonAlert className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p
