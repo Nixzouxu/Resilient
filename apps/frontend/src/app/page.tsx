@@ -22,6 +22,7 @@ import {
 
 // Mengimpor motion dari framer-motion untuk animasi yang mulus
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 
 // Data simulasi untuk grafik latensi jaringan
@@ -163,13 +164,13 @@ services:
             </button>
 
             {/* Tautan ke dokumentasi dan tombol mulai sekarang */}
-            <div className="hidden sm:flex items-center gap-4">
-              <a href="/docs" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 flex items-center gap-1">
+            <div className="flex items-center gap-4">
+              <a href="/docs" className="hidden sm:flex text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 items-center gap-1">
                 Dokumentasi <ExternalLink className="h-3 w-3" />
               </a>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition shadow-lg shadow-blue-500/20">
+              <Link href="/login" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition shadow-lg shadow-blue-500/20">
                 Mulai Sekarang
-              </button>
+              </Link>
             </div>
 
           </div>
@@ -209,9 +210,9 @@ services:
 
           {/* Dua tombol aksi utama: deploy langsung dan baca dokumentasi */}
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2">
+            <a href="#harga" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2">
               Deploy Sekarang <Server className="h-5 w-5" />
-            </button>
+            </a>
             <button className="glass-panel text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 px-8 py-4 font-semibold transition flex items-center justify-center gap-2">
               Baca Dokumentasi <FileText className="h-5 w-5" />
             </button>
