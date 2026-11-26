@@ -1,0 +1,581 @@
+/* ==========================================================
+   auth.css: gaya halaman Masuk, Daftar, dan Lupa password
+   Semua nama diawali "auth-" dan warna dipasang lewat atribut
+   data-theme di .auth-root, jadi tidak mengganggu halaman lain.
+   Warna dasar diambil dari desain referensi (sampling piksel),
+   lalu teksnya sengaja dilembutkan: bukan putih atau hitam
+   murni, tapi tetap lolos kontras AA (minimal 4.5 banding 1).
+   ========================================================== */
+
+.auth-root {
+  --font-ui: "Schibsted Grotesk Variable", "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --radius-card: 20px;
+  --radius-pill: 999px;
+}
+
+/*  Tema gelap (nilai dari desain referensi) */
+.auth-root[data-theme="dark"] {
+  --bg-a: #080b1a;
+  --bg-b: #060610;
+  --card-a: #14192d;
+  --card-b: #0e1120;
+  --card-edge: rgba(150, 165, 225, 0.17);
+  --card-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(190, 200, 255, 0.06);
+  --glow: rgba(70, 95, 200, 0.22);
+  --grid: rgba(150, 165, 225, 0.06);
+  --star: rgba(190, 200, 255, 0.6);
+  --sheen: rgba(150, 168, 255, 0.11);
+  --text-strong: #cfd5e8;
+  --text: #aab2c8;
+  --text-muted: #8c93aa;
+  --placeholder: #8189a3;
+  --field-bg: rgba(255, 255, 255, 0.045);
+  --field-edge: rgba(150, 165, 225, 0.24);
+  --accent: #9aaaff;
+  --accent-soft: rgba(154, 170, 255, 0.16);
+  --accent-soft-hover: rgba(154, 170, 255, 0.26);
+  --accent-edge: rgba(154, 170, 255, 0.5);
+  --on-accent: #e8ebff;
+  --danger: #ff9fae;
+  --ok: #86dcae;
+  --thumb: rgba(150, 165, 225, 0.22);
+}
+
+/* Tema terang (diturunkan dari struktur yang sama)  */
+.auth-root[data-theme="light"] {
+  --bg-a: #f2f4fb;
+  --bg-b: #e5e9f5;
+  --card-a: #fbfcff;
+  --card-b: #f1f4fb;
+  --card-edge: rgba(52, 66, 130, 0.2);
+  --card-shadow: 0 40px 80px -45px rgba(40, 55, 120, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --glow: rgba(90, 110, 220, 0.16);
+  --grid: rgba(52, 66, 130, 0.07);
+  --star: rgba(52, 66, 130, 0.35);
+  --sheen: rgba(67, 80, 196, 0.1);
+  --text-strong: #343c5e;
+  --text: #4b5374;
+  --text-muted: #5a6384;
+  --placeholder: #646d8c;
+  --field-bg: rgba(255, 255, 255, 0.75);
+  --field-edge: rgba(52, 66, 130, 0.32);
+  --accent: #4350c4;
+  --accent-soft: rgba(67, 80, 196, 0.1);
+  --accent-soft-hover: rgba(67, 80, 196, 0.18);
+  --accent-edge: rgba(67, 80, 196, 0.5);
+  --on-accent: #2f3a96;
+  --danger: #9d2236;
+  --ok: #17694a;
+  --thumb: rgba(67, 80, 196, 0.14);
+}
+
+/*  Halaman dan latar */
+.auth-root {
+  position: relative;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 48px 16px;
+  overflow-x: clip;
+  background: linear-gradient(180deg, var(--bg-a), var(--bg-b));
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.auth-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Garis kisi tipis yang memudar ke tepi, seperti bingkai pada referensi */
+.auth-backdrop-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 96px 96px;
+  background-position: center;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 15%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 15%, transparent 75%);
+}
+
+/* Titik-titik kecil seperti bintang. Murah karena hanya gradient, bukan elemen. */
+.auth-backdrop-stars {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 82% 12%, var(--star), transparent 60%),
+    radial-gradient(1.5px 1.5px at 24% 72%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 68% 80%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 91% 56%, var(--star), transparent 60%),
+    radial-gradient(1.5px 1.5px at 6% 44%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 47% 8%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 55% 92%, var(--star), transparent 60%);
+  opacity: 0.8;
+}
+
+.auth-backdrop-glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(900px, 120vw);
+  height: 560px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at center, var(--glow), transparent 68%);
+}
+
+.auth-main {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+/*  Panggung tiga kartu 
+   Semua gerakan di sini hanya mengubah transform dan opacity, dua properti
+   yang dikerjakan GPU tanpa menggambar ulang isi kartu. Efek blur sengaja
+   tidak dipakai (terlalu berat), kesan kedalaman diganti lapisan gelap tipis
+   (lihat --veil pada .auth-card::before). */
+.auth-stage {
+  --side: 372px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  display: grid;
+  width: 100%;
+  max-width: 1200px;
+  min-height: 600px;
+  justify-items: center;
+  align-items: center;
+  perspective: 1600px;
+}
+
+.auth-slot {
+  /* Nilai default = kartu di tengah. Posisi lain menimpa lima variabel ini. */
+  --x: 0px;
+  --s: 1;
+  --r: 0deg;
+  --o: 1;
+  --veil: 0;
+  grid-area: 1 / 1;
+  width: min(400px, calc(100vw - 32px));
+  transform: translate3d(var(--x), 0, 0) scale(var(--s)) rotateY(var(--r));
+  opacity: var(--o);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transition: transform 0.9s var(--ease), opacity 0.6s ease;
+  /* Animasi pembuka: ketiga kartu mulai menumpuk di tengah, lalu terbuka
+     bersamaan ke posisi masing-masing. Tidak memakai fill-mode "forwards"
+     supaya perpindahan kartu sesudahnya tetap bisa dianimasikan.
+     Jeda 0.15 detik di awal disengaja: saat halaman baru dimuat, browser sibuk
+     memasang kartu dan font. Dengan jeda, kerja berat itu selesai selagi kartu
+     masih tak terlihat, jadi gerakannya sendiri mulus sejak frame pertama. */
+  animation: auth-enter 1.05s var(--ease) 0.15s backwards;
+}
+
+@keyframes auth-enter {
+  from {
+    transform: translate3d(0, 28px, 0) scale(0.88) rotateY(0deg);
+    opacity: 0;
+  }
+}
+
+.auth-slot[data-offset="0"] { z-index: 3; }
+
+/* Satu langkah dari tengah: terlihat di samping, agak gelap dan miring ke arah tengah */
+.auth-slot[data-offset="-1"] { --x: calc(var(--side) * -1); --s: 0.9; --r: 16deg; --o: 0.6; --veil: 0.32; z-index: 2; cursor: pointer; }
+.auth-slot[data-offset="1"] { --x: var(--side); --s: 0.9; --r: -16deg; --o: 0.6; --veil: 0.32; z-index: 2; cursor: pointer; }
+
+/* Dua langkah dari tengah: menjauh dan menghilang, siap masuk saat diputar */
+.auth-slot[data-offset="-2"] { --x: calc(var(--side) * -1.7); --s: 0.8; --r: 22deg; --o: 0; --veil: 0.32; z-index: 1; pointer-events: none; }
+.auth-slot[data-offset="2"] { --x: calc(var(--side) * 1.7); --s: 0.8; --r: -22deg; --o: 0; --veil: 0.32; z-index: 1; pointer-events: none; }
+
+/* Layar sempit: hanya kartu aktif yang terlihat, yang lain bergeser sedikit lalu hilang */
+.auth-stage[data-wide="false"] .auth-slot[data-offset="-1"],
+.auth-stage[data-wide="false"] .auth-slot[data-offset="-2"] { --x: -40px; --s: 0.96; --r: 0deg; --o: 0; pointer-events: none; }
+.auth-stage[data-wide="false"] .auth-slot[data-offset="1"],
+.auth-stage[data-wide="false"] .auth-slot[data-offset="2"] { --x: 40px; --s: 0.96; --r: 0deg; --o: 0; pointer-events: none; }
+
+.auth-slot-inner {
+  width: 100%;
+}
+
+/*  Kartu */
+.auth-card {
+  position: relative;
+  overflow: hidden;
+  padding: 32px 28px 26px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-edge);
+  background: linear-gradient(180deg, var(--card-a), var(--card-b));
+  box-shadow: var(--card-shadow);
+  text-align: center;
+  transition: border-color 0.3s ease;
+}
+
+.auth-slot[data-offset="-1"]:hover .auth-card,
+.auth-slot[data-offset="1"]:hover .auth-card {
+  border-color: var(--accent-edge);
+}
+
+/* Empat titik di sudut, seperti penanda registrasi pada referensi */
+.auth-mark {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  opacity: 0.7;
+}
+.auth-mark-tl { top: 9px; left: 9px; }
+.auth-mark-tr { top: 9px; right: 9px; }
+.auth-mark-bl { bottom: 9px; left: 9px; }
+.auth-mark-br { bottom: 9px; right: 9px; }
+
+/* Lapisan gelap tipis di atas kartu samping. Menggantikan efek blur yang berat:
+   hanya opacity-nya yang berubah, jadi murah dan tetap memberi kesan kedalaman. */
+.auth-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: var(--card-b);
+  opacity: var(--veil);
+  transition: opacity 0.6s ease;
+}
+
+/* Kilau cahaya yang menyapu kartu saat ia menjadi aktif. Karena memakai
+   atribut data-active, animasinya otomatis mengulang tiap kartu dibawa ke tengah. */
+.auth-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 38%, var(--sheen) 50%, transparent 62%);
+  transform: translateX(-130%);
+}
+.auth-card[data-active="true"]::after {
+  animation: auth-sheen 1.3s cubic-bezier(0.22, 0.7, 0.2, 1) 0.25s 1 both;
+}
+@keyframes auth-sheen {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(130%); }
+}
+
+/* Logo dan judul */
+.auth-brand {
+  display: block;
+  margin: 0 auto;
+  color: var(--text-strong);
+}
+
+/* Garis denyut digambar dari kiri ke kanan setiap kartu menjadi aktif */
+.auth-pulse {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.auth-card[data-active="true"] .auth-pulse {
+  animation: auth-draw 1.1s ease-out 0.35s 1 both;
+}
+@keyframes auth-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+.auth-title {
+  margin: 16px 0 6px;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+
+.auth-lead {
+  margin: 0 auto;
+  max-width: 30ch;
+  color: var(--text-muted);
+}
+
+.auth-body {
+  margin: 22px 0 26px;
+  color: var(--text);
+  text-align: left;
+}
+
+/*  Form */
+.auth-form {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.auth-field {
+  margin-bottom: 14px;
+}
+
+.auth-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.auth-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.auth-label-row .auth-label {
+  margin-bottom: 6px;
+}
+
+.auth-input-wrap {
+  position: relative;
+}
+
+.auth-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--field-edge);
+  background: var(--field-bg);
+  color: var(--text-strong);
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.auth-input-padded {
+  padding-right: 48px;
+}
+.auth-input::placeholder {
+  color: var(--placeholder);
+}
+.auth-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
+}
+.auth-input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.auth-input:disabled {
+  opacity: 0.65;
+}
+
+.auth-eye {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.auth-eye:hover {
+  color: var(--text-strong);
+}
+.auth-eye:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+.auth-error {
+  margin: 6px 0 0 4px;
+  font-size: 13px;
+  color: var(--danger);
+}
+
+/* Tombol dan tautan  */
+.auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  margin-top: 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--accent-edge);
+  background: var(--accent-soft);
+  color: var(--on-accent);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+.auth-btn:hover:not(:disabled) {
+  background: var(--accent-soft-hover);
+}
+.auth-btn:active:not(:disabled) {
+  transform: scale(0.985);
+}
+.auth-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.auth-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.auth-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: transparent;
+  cursor: pointer;
+  transition: text-decoration-color 0.2s ease;
+}
+.auth-link:hover {
+  text-decoration-color: currentColor;
+}
+.auth-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.auth-foot {
+  margin: 20px 0 0;
+  color: var(--text-muted);
+}
+
+.auth-spin {
+  animation: auth-spin 0.9s linear infinite;
+}
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Pesan */
+.auth-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid;
+  font-size: 13px;
+}
+.auth-alert svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.auth-alert[data-tone="error"] {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.auth-alert[data-tone="ok"] {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 40%, transparent);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+
+/* Tombol ganti tema */
+.auth-switch {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--card-edge);
+  background: color-mix(in srgb, var(--card-b) 80%, transparent);
+}
+.auth-switch-btn {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 34px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.auth-switch-btn[aria-pressed="true"] {
+  color: var(--text-strong);
+}
+.auth-switch-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* Bulatan penanda: satu elemen yang meluncur ke tombol aktif */
+.auth-switch-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 52px;
+  height: 34px;
+  border-radius: var(--radius-pill);
+  background: var(--thumb);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.auth-switch[data-theme-value="light"] .auth-switch-thumb {
+  transform: translateX(54px);
+}
+.auth-switch-icon {
+  position: relative;
+}
+
+/*  Layar sempit  */
+@media (max-width: 899px) {
+  .auth-root {
+    padding: 32px 16px;
+  }
+  .auth-stage {
+    min-height: 0;
+  }
+  .auth-card {
+    padding: 28px 22px 22px;
+  }
+  .auth-title {
+    font-size: 30px;
+  }
+}
+
+/* Hormati pengguna yang mematikan animasi  */
+@media (prefers-reduced-motion: reduce) {
+  .auth-slot {
+    animation: none;
+    transition-duration: 0.01s;
+  }
+  .auth-switch-thumb {
+    transition-duration: 0.01s;
+  }
+  .auth-card::after,
+  .auth-card[data-active="true"]::after,
+  .auth-card[data-active="true"] .auth-pulse {
+    animation: none;
+  }
+  .auth-spin {
+    animation-duration: 2.4s;
+  }
+}
