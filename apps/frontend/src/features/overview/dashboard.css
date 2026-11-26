@@ -26,13 +26,14 @@
 
 .rs-dash-banner-art {
   position: absolute;
-  inset: 0;
+  inset: -16px 0;
   background-image: url("/dashboard/banner-status-d1.webp");
   background-position: right center;
   background-size: cover;
   background-repeat: no-repeat;
   opacity: 0.88;
   pointer-events: none;
+  will-change: transform;
 }
 
 /* Gradasi navy dari kiri ke kanan agar teks banner selalu terbaca jelas */
@@ -50,32 +51,4 @@
 
 .rs-font-display {
   font-family: var(--rs-font-display);
-}
-
-/* Satu momen pembuka halus untuk kartu ringkasan (total durasi di bawah 400 ms) */
-@keyframes rs-card-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.rs-stagger-item {
-  animation: rs-card-enter 260ms var(--rs-ease) both;
-}
-
-.rs-stagger-item:nth-child(2) {
-  animation-delay: 45ms;
-}
-
-.rs-stagger-item:nth-child(3) {
-  animation-delay: 90ms;
-}
-
-.rs-stagger-item:nth-child(4) {
-  animation-delay: 135ms;
 }
