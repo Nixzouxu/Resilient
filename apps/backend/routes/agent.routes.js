@@ -7,7 +7,7 @@ const authenticateApiKey = require('../middleware/apiKey.middleware');
 router.use(authenticateApiKey);
 
 // 1. GET /agent/services - Agent meminta daftar service yang harus dipantau
-router.get('/agent/services', async (req, res) => {
+router.get('/services', async (req, res) => {
     try {
         const result = await pgPool.query(
             'SELECT id, name, type, endpoint_url, container_name, check_interval, status, consecutive_failures, last_checked_at FROM services WHERE tenant_id = $1 ORDER BY id ASC',

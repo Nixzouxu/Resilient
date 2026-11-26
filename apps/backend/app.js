@@ -6,6 +6,7 @@ const { setupTimescaleDB } = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const serviceRoutes = require('./routes/service.routes');
 const agentRoutes = require('./routes/agent.routes');
+const overviewRoutes = require('./routes/overview.routes');
 
 const app = express();
 
