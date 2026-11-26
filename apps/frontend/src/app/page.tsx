@@ -22,6 +22,9 @@ import {
 
 // Mengimpor motion dari framer-motion untuk animasi yang mulus
 import { motion } from 'framer-motion';
+
+// Link dipakai untuk pindah ke halaman lain di dalam aplikasi (misalnya /login)
+// tanpa memuat ulang seluruh halaman
 import Link from 'next/link';
 
 
@@ -83,8 +86,8 @@ export default function HalamanUtama() {
   }, [temaGelap]);
 
   // Isi teks konfigurasi Docker Compose yang akan disalin pengguna
-  const teksDockerCompose = `version: '3.8'
-services:
+  // Baris "version" sengaja tidak ada: Docker Compose versi baru menganggapnya usang
+  const teksDockerCompose = `services:
   resilient-agent:
     image: resilient/agent:latest
     environment:
@@ -164,10 +167,12 @@ services:
             </button>
 
             {/* Tautan ke dokumentasi dan tombol mulai sekarang */}
+            {/* Tombol mulai selalu terlihat (termasuk di ponsel), hanya tautan dokumentasi yang disembunyikan di layar kecil */}
             <div className="flex items-center gap-4">
               <a href="/docs" className="hidden sm:flex text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 items-center gap-1">
                 Dokumentasi <ExternalLink className="h-3 w-3" />
               </a>
+              {/* Mengarah ke halaman /login tempat tiga kartu (Masuk, Daftar, Lupa password) tampil */}
               <Link href="/login" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition shadow-lg shadow-blue-500/20">
                 Mulai Sekarang
               </Link>
@@ -210,6 +215,7 @@ services:
 
           {/* Dua tombol aksi utama: deploy langsung dan baca dokumentasi */}
           <div className="flex flex-col sm:flex-row justify-center gap-4">
+            {/* Menggulir halaman ke bagian pilihan deployment (id="harga") */}
             <a href="#harga" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2">
               Deploy Sekarang <Server className="h-5 w-5" />
             </a>
@@ -591,16 +597,16 @@ services:
             {/* Isi kode dengan pewarnaan sintaks manual menggunakan span berwarna */}
             <div className="p-6 overflow-x-auto text-sm font-mono leading-relaxed bg-slate-50 dark:bg-[#0d1117] text-slate-800 dark:text-slate-300">
               <pre><code>
-                <span className="text-purple-600 dark:text-purple-400">version:</span> <span className="text-green-600 dark:text-green-300">{"'3.8'"}</span>
-                <span className="text-purple-600 dark:text-purple-400">services:</span>
-                <span className="text-blue-600 dark:text-blue-400">resilient-agent:</span>
-                <span className="text-slate-500 dark:text-slate-400">image:</span> resilient/agent:latest
-                <span className="text-slate-500 dark:text-slate-400">environment:</span>
-                - API_KEY=kunci_rahasia_anda
-                - SERVER_URL=https://resilient.domain-anda.go.id
-                <span className="text-slate-500 dark:text-slate-400">volumes:</span>
-                - /var/run/docker.sock:/var/run/docker.sock
-                <span className="text-slate-500 dark:text-slate-400">restart:</span> unless-stopped
+                {/* Tiap baris diakhiri {'\n'} karena JSX membuang baris baru biasa, sehingga tanpa ini semua baris menyatu */}
+                <span className="text-purple-600 dark:text-purple-400">services:</span>{'\n'}
+                {'  '}<span className="text-blue-600 dark:text-blue-400">resilient-agent:</span>{'\n'}
+                {'    '}<span className="text-slate-500 dark:text-slate-400">image:</span>{' resilient/agent:latest\n'}
+                {'    '}<span className="text-slate-500 dark:text-slate-400">environment:</span>{'\n'}
+                {'      - API_KEY=kunci_rahasia_anda\n'}
+                {'      - SERVER_URL=https://resilient.domain-anda.go.id\n'}
+                {'    '}<span className="text-slate-500 dark:text-slate-400">volumes:</span>{'\n'}
+                {'      - /var/run/docker.sock:/var/run/docker.sock\n'}
+                {'    '}<span className="text-slate-500 dark:text-slate-400">restart:</span>{' unless-stopped'}
               </code></pre>
             </div>
           </motion.div>
