@@ -14,7 +14,7 @@
   --radius-pill: 999px;
 }
 
-/* ---------- Tema gelap (nilai dari desain referensi) ---------- */
+/*  Tema gelap (nilai dari desain referensi) */
 .auth-root[data-theme="dark"] {
   --bg-a: #080b1a;
   --bg-b: #060610;
@@ -42,7 +42,7 @@
   --thumb: rgba(150, 165, 225, 0.22);
 }
 
-/* ---------- Tema terang (diturunkan dari struktur yang sama) ---------- */
+/* Tema terang (diturunkan dari struktur yang sama)  */
 .auth-root[data-theme="light"] {
   --bg-a: #f2f4fb;
   --bg-b: #e5e9f5;
@@ -70,7 +70,7 @@
   --thumb: rgba(67, 80, 196, 0.14);
 }
 
-/* ---------- Halaman dan latar ---------- */
+/*  Halaman dan latar */
 .auth-root {
   position: relative;
   min-height: 100dvh;
@@ -141,8 +141,14 @@
   gap: 28px;
 }
 
-/* ---------- Panggung tiga kartu ---------- */
+/*  Panggung tiga kartu 
+   Semua gerakan di sini hanya mengubah transform dan opacity, dua properti
+   yang dikerjakan GPU tanpa menggambar ulang isi kartu. Efek blur sengaja
+   tidak dipakai (terlalu berat), kesan kedalaman diganti lapisan gelap tipis
+   (lihat --veil pada .auth-card::before). */
 .auth-stage {
+  --side: 372px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
   display: grid;
   width: 100%;
   max-width: 1200px;
@@ -153,20 +159,56 @@
 }
 
 .auth-slot {
+  /* Nilai default = kartu di tengah. Posisi lain menimpa lima variabel ini. */
+  --x: 0px;
+  --s: 1;
+  --r: 0deg;
+  --o: 1;
+  --veil: 0;
   grid-area: 1 / 1;
   width: min(400px, calc(100vw - 32px));
+  transform: translate3d(var(--x), 0, 0) scale(var(--s)) rotateY(var(--r));
+  opacity: var(--o);
   will-change: transform, opacity;
+  backface-visibility: hidden;
+  transition: transform 0.9s var(--ease), opacity 0.6s ease;
+  /* Animasi pembuka: ketiga kartu mulai menumpuk di tengah, lalu terbuka
+     bersamaan ke posisi masing-masing. Tidak memakai fill-mode "forwards"
+     supaya perpindahan kartu sesudahnya tetap bisa dianimasikan.
+     Jeda 0.15 detik di awal disengaja: saat halaman baru dimuat, browser sibuk
+     memasang kartu dan font. Dengan jeda, kerja berat itu selesai selagi kartu
+     masih tak terlihat, jadi gerakannya sendiri mulus sejak frame pertama. */
+  animation: auth-enter 1.05s var(--ease) 0.15s backwards;
 }
 
-.auth-slot[data-side="true"] {
-  cursor: pointer;
+@keyframes auth-enter {
+  from {
+    transform: translate3d(0, 28px, 0) scale(0.88) rotateY(0deg);
+    opacity: 0;
+  }
 }
+
+.auth-slot[data-offset="0"] { z-index: 3; }
+
+/* Satu langkah dari tengah: terlihat di samping, agak gelap dan miring ke arah tengah */
+.auth-slot[data-offset="-1"] { --x: calc(var(--side) * -1); --s: 0.9; --r: 16deg; --o: 0.6; --veil: 0.32; z-index: 2; cursor: pointer; }
+.auth-slot[data-offset="1"] { --x: var(--side); --s: 0.9; --r: -16deg; --o: 0.6; --veil: 0.32; z-index: 2; cursor: pointer; }
+
+/* Dua langkah dari tengah: menjauh dan menghilang, siap masuk saat diputar */
+.auth-slot[data-offset="-2"] { --x: calc(var(--side) * -1.7); --s: 0.8; --r: 22deg; --o: 0; --veil: 0.32; z-index: 1; pointer-events: none; }
+.auth-slot[data-offset="2"] { --x: calc(var(--side) * 1.7); --s: 0.8; --r: -22deg; --o: 0; --veil: 0.32; z-index: 1; pointer-events: none; }
+
+/* Layar sempit: hanya kartu aktif yang terlihat, yang lain bergeser sedikit lalu hilang */
+.auth-stage[data-wide="false"] .auth-slot[data-offset="-1"],
+.auth-stage[data-wide="false"] .auth-slot[data-offset="-2"] { --x: -40px; --s: 0.96; --r: 0deg; --o: 0; pointer-events: none; }
+.auth-stage[data-wide="false"] .auth-slot[data-offset="1"],
+.auth-stage[data-wide="false"] .auth-slot[data-offset="2"] { --x: 40px; --s: 0.96; --r: 0deg; --o: 0; pointer-events: none; }
 
 .auth-slot-inner {
   width: 100%;
 }
 
-/* ---------- Kartu ---------- */
+/*  Kartu */
 .auth-card {
   position: relative;
   overflow: hidden;
@@ -179,7 +221,8 @@
   transition: border-color 0.3s ease;
 }
 
-.auth-slot[data-side="true"]:hover .auth-card {
+.auth-slot[data-offset="-1"]:hover .auth-card,
+.auth-slot[data-offset="1"]:hover .auth-card {
   border-color: var(--accent-edge);
 }
 
@@ -196,6 +239,19 @@
 .auth-mark-tr { top: 9px; right: 9px; }
 .auth-mark-bl { bottom: 9px; left: 9px; }
 .auth-mark-br { bottom: 9px; right: 9px; }
+
+/* Lapisan gelap tipis di atas kartu samping. Menggantikan efek blur yang berat:
+   hanya opacity-nya yang berubah, jadi murah dan tetap memberi kesan kedalaman. */
+.auth-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: var(--card-b);
+  opacity: var(--veil);
+  transition: opacity 0.6s ease;
+}
 
 /* Kilau cahaya yang menyapu kartu saat ia menjadi aktif. Karena memakai
    atribut data-active, animasinya otomatis mengulang tiap kartu dibawa ke tengah. */
@@ -215,7 +271,7 @@
   to { transform: translateX(130%); }
 }
 
-/* ---------- Logo dan judul ---------- */
+/* Logo dan judul */
 .auth-brand {
   display: block;
   margin: 0 auto;
@@ -257,7 +313,7 @@
   text-align: left;
 }
 
-/* ---------- Form ---------- */
+/*  Form */
 .auth-form {
   margin-top: 24px;
   text-align: left;
@@ -346,7 +402,7 @@
   color: var(--danger);
 }
 
-/* ---------- Tombol dan tautan ---------- */
+/* Tombol dan tautan  */
 .auth-btn {
   display: flex;
   align-items: center;
@@ -414,7 +470,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ---------- Pesan ---------- */
+/* Pesan */
 .auth-alert {
   display: flex;
   align-items: flex-start;
@@ -440,8 +496,9 @@
   background: color-mix(in srgb, var(--ok) 12%, transparent);
 }
 
-/* ---------- Tombol ganti tema ---------- */
+/* Tombol ganti tema */
 .auth-switch {
+  position: relative;
   display: inline-flex;
   gap: 2px;
   padding: 4px;
@@ -451,6 +508,7 @@
 }
 .auth-switch-btn {
   position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
   width: 52px;
@@ -460,6 +518,7 @@
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
+  transition: color 0.3s ease;
 }
 .auth-switch-btn[aria-pressed="true"] {
   color: var(--text-strong);
@@ -468,17 +527,25 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+/* Bulatan penanda: satu elemen yang meluncur ke tombol aktif */
 .auth-switch-thumb {
   position: absolute;
-  inset: 0;
+  top: 4px;
+  left: 4px;
+  width: 52px;
+  height: 34px;
   border-radius: var(--radius-pill);
   background: var(--thumb);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.auth-switch[data-theme-value="light"] .auth-switch-thumb {
+  transform: translateX(54px);
 }
 .auth-switch-icon {
   position: relative;
 }
 
-/* ---------- Layar sempit ---------- */
+/*  Layar sempit  */
 @media (max-width: 899px) {
   .auth-root {
     padding: 32px 16px;
@@ -494,8 +561,15 @@
   }
 }
 
-/* ---------- Hormati pengguna yang mematikan animasi ---------- */
+/* Hormati pengguna yang mematikan animasi  */
 @media (prefers-reduced-motion: reduce) {
+  .auth-slot {
+    animation: none;
+    transition-duration: 0.01s;
+  }
+  .auth-switch-thumb {
+    transition-duration: 0.01s;
+  }
   .auth-card::after,
   .auth-card[data-active="true"]::after,
   .auth-card[data-active="true"] .auth-pulse {
