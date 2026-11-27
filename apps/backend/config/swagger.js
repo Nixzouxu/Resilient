@@ -23,7 +23,7 @@ const swaggerDefinition = {
                 type: 'http',
                 scheme: 'bearer',
                 bearerFormat: 'JWT',
-                description: 'Masukkan token JWT untuk endpoint yang dilindungi (contoh: CRUD Services)',
+                description: 'Masukkan token JWT untuk endpoint yang dilindungi (contoh: CRUD Services, Overview, Alerts)',
             },
             ApiKeyAuth: {
                 type: 'apiKey',
@@ -84,6 +84,19 @@ const swaggerDefinition = {
                 responses: {
                     200: { description: 'Login berhasil, mengembalikan JWT token' },
                     400: { description: 'Email atau password salah' },
+                },
+            },
+        },
+
+        // ---- OVERVIEW ROUTES ----
+        '/overview': {
+            get: {
+                summary: 'Ambil ringkasan metrik tenant untuk halaman Overview',
+                tags: ['Overview'],
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    200: { description: 'Ringkasan total_services, down_services, uptime_24h_pct, incidents_this_week, dan overall_status' },
+                    401: { description: 'Token JWT tidak valid atau tidak disertakan' },
                 },
             },
         },
@@ -175,6 +188,79 @@ const swaggerDefinition = {
                     200: { description: 'Service berhasil dihapus' },
                     400: { description: 'ID service tidak valid' },
                     404: { description: 'Service tidak ditemukan atau akses dilarang' },
+                },
+            },
+        },
+        '/services/{id}/health-checks': {
+            get: {
+                summary: 'Ambil riwayat time-series health checks untuk service',
+                tags: ['Services'],
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        in: 'path',
+                        name: 'id',
+                        required: true,
+                        schema: { type: 'integer', example: 1 },
+                        description: 'ID service',
+                    },
+                    {
+                        in: 'query',
+                        name: 'range',
+                        required: false,
+                        schema: {
+                            type: 'string',
+                            enum: ['24h', '7d', '30d'],
+                            default: '24h',
+                        },
+                        description: 'Rentang waktu riwayat (24h, 7d, atau 30d)',
+                    },
+                ],
+                responses: {
+                    200: { description: 'Riwayat health check berhasil diambil' },
+                    400: { description: 'ID service atau parameter range tidak valid' },
+                    404: { description: 'Service tidak ditemukan atau akses dilarang' },
+                },
+            },
+        },
+
+        // ---- ALERTS ROUTES ----
+        '/alerts/telegram': {
+            get: {
+                summary: 'Cek status koneksi Telegram chat ID milik tenant',
+                tags: ['Alerts'],
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    200: { description: 'Status koneksi Telegram berhasil diambil' },
+                    401: { description: 'Token JWT tidak valid atau tidak disertakan' },
+                    404: { description: 'Tenant tidak ditemukan' },
+                },
+            },
+        },
+        '/alerts/telegram/connect': {
+            post: {
+                summary: 'Hubungkan atau perbarui Telegram chat ID tenant',
+                tags: ['Alerts'],
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['telegram_chat_id'],
+                                properties: {
+                                    telegram_chat_id: { type: 'string', example: '987654321' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    200: { description: 'Telegram chat ID berhasil dihubungkan' },
+                    400: { description: 'telegram_chat_id wajib diisi' },
+                    401: { description: 'Token JWT tidak valid atau tidak disertakan' },
+                    404: { description: 'Tenant tidak ditemukan' },
                 },
             },
         },

@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth.routes');
 const serviceRoutes = require('./routes/service.routes');
 const agentRoutes = require('./routes/agent.routes');
 const overviewRoutes = require('./routes/overview.routes');
+const alertRoutes = require('./routes/alert.routes');
 
 const app = express();
 
@@ -30,8 +31,11 @@ app.get('/', (req, res) => {
 // Main Routes
 app.use('/auth', authRoutes);
 app.use('/services', serviceRoutes);
-app.use('/agent', agentRoutes);
-app.use('/overview', overviewRoutes);
+
+app.use('/agent', agentRoutes); // memuat rute untuk agent
+app.use('/overview', overviewRoutes); // memuat rute untuk overview
+app.use('/alerts', alertRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 

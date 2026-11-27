@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { pgPool, timescalePool } = require('../config/db');
 const authenticateJWT = require('../middleware/auth.middleware');
+const { pgPool, timescalePool } = require('../config/db');
 
 // Gunakan JWT Guard untuk semua endpoint service
 router.use(authenticateJWT);
+
 
 const RANGE_INTERVAL_MAP = {
   '24h': '24 hours',
