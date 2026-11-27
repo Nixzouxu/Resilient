@@ -1,0 +1,76 @@
+# Konfigurasi produksi Resilient (dipakai di VPS).
+# Semua nilai rahasia dibaca dari file .env.prod yang tidak ikut Git.
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    container_name: resilient-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    # Sengaja tanpa "ports": database hanya terjangkau dari container lain, tidak dari internet
+    volumes:
+      - resilient_pgdata:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: resilient-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      # Token bot Telegram, boleh kosong (notifikasi Telegram saja yang tidak aktif)
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+    ports:
+      - "3101:3001"
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://103.150.93.89:3101
+    container_name: resilient-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://103.150.93.89:3101
+    ports:
+      - "3100:3000"
+  # Agent berjalan di jaringan Docker yang sama dengan backend,
+  # jadi pemantauan tidak lagi bergantung pada laptop yang bisa tertutup
+  agent:
+    build:
+      context: ./apps/agent
+      dockerfile: Dockerfile
+    container_name: resilient-agent
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      RESILIENT_BACKEND_URL: http://backend:3001
+      RESILIENT_API_KEY: ${AGENT_API_KEY:-}
+
+  # Situs kecil yang sengaja bisa dimatikan saat demo,
+  # untuk membuktikan alur "layanan mati lalu alert terkirim"
+  demo-target:
+    image: nginx:alpine
+    container_name: resilient-demo-target
+    restart: "no"
+
+volumes:
+  resilient_pgdata:
