@@ -14,25 +14,36 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Inisialisasi Database
-setupTimescaleDB();
+// Inisialisasi TimescaleDB hanya saat jalan di lokal atau Docker (bukan Vercel)
+if (!process.env.VERCEL) {
+    setupTimescaleDB();
+}
 
 // Import dan jalankan swagger
 const setupSwagger = require('./config/swagger');
 setupSwagger(app);
 
+// Route kesehatan sederhana untuk cek cepat di browser
+app.get('/', (req, res) => {
+    res.json({ status: 'ok', service: 'Resilient Backend API' });
+});
+
 // Main Routes
 app.use('/auth', authRoutes);
 app.use('/services', serviceRoutes);
+
 app.use('/agent', agentRoutes); // memuat rute untuk agent
 app.use('/overview', overviewRoutes); // memuat rute untuk overview
 app.use('/alerts', alertRoutes);
 
+
 const PORT = process.env.PORT || 5000;
 
-// udah dihapus console.log yang mencetak URL database (ada ada saja suki ini karena bisa membocorkan info sensitif di log produksi, nak kena rodok mas amba ke?)
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Resilient Backend berjalan di http://localhost:${PORT}`);
+        console.log(`Swagger docs tersedia di http://localhost:${PORT}/api-docs`);
+    });
+}
 
-app.listen(PORT, () => {
-    console.log(`Resilient Backend berjalan di http://localhost:${PORT}`);
-    console.log(`Swagger docs tersedia di http://localhost:${PORT}/api-docs`);
-});
+module.exports = app;

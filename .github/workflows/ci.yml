@@ -1,33 +1,99 @@
-name : CI
+name: CI
 
-# on artinya kapan workflow ini otomatis jalan:
-# setiap ada push ke branch main, dan setiap ada pull request yang menuju main
-
+# Kapan workflow ini jalan otomatis:
+# setiap push ke main, dan setiap pull request yang menuju main
 on:
-    push:
-        branches: [main]
-    pull_request:
-        branches: [main]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
-jobs: 
-    lint-and-test:
-        # Jalan di server Ubuntu bawaan github, bukan di laptop kita
-        runs-on: ubuntu-latest
-        steps:
-            # Ambil kode dari repo ke server CI
-            - uses: actions/checkout@v4
-            
-            # Pasang Node.js versi 24 di server CI, harus sama dengan versi di laptop
-            # supaya hasil lint/test konsisten antara lokal dan CI
-            - uses: actions/setup-node@v4
-              with: 
-                node-version: 24
-            
-            # Install semua dependency (termasuk BE, FE, Agent)
-            # sekaligus, karena ini monorepo dengan workspaces).
-            - run: npm install
+# Kalau ada push baru di branch yang sama, run lama dibatalkan.
+# Hemat menit Actions dan hasil yang tampil selalu yang terbaru
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
-            # ini pemeriksaan utamanya
-            # kalau ada error lint, langkah ini gagal,
-            # dan seluruh pipeline ditandai merah di tab Actions Github
-            - run: npm run lint
+# Workflow ini hanya perlu membaca kode, tidak perlu izin menulis
+permissions:
+  contents: read
+
+jobs:
+  # Job 1: lint (pemeriksaan gaya dan kesalahan kode)
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 24 supaya sama dengan versi di laptop, hasil CI konsisten dengan lokal
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # Monorepo dengan workspaces: satu install untuk backend, frontend, dan agent
+      - run: npm install
+
+      # Kalau ada error lint, langkah ini gagal dan pipeline merah
+      - run: npm run lint
+
+  # Job 2: pastikan frontend benar-benar bisa di-build seperti saat deploy
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - run: npm install
+
+      # Next.js membaca alamat backend saat build, jadi diberi nilai contoh.
+      # Nilai asli untuk produksi diatur di platform deployment, bukan di sini
+      - name: Build frontend
+        run: npm run build
+        working-directory: apps/frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+
+  # Job 3: agent ditulis dengan TypeScript, jadi cek tipenya tanpa menghasilkan file
+  build-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - run: npm install
+
+      - name: Cek tipe TypeScript agent
+        run: npx tsc --noEmit
+        working-directory: apps/agent
+
+  # Job 4: backend memakai JavaScript biasa, jadi minimal cek tidak ada
+  # kesalahan sintaks di semua file .js (tanpa perlu database)
+  check-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - run: npm install
+
+      - name: Cek sintaks semua file backend
+        run: find apps/backend -name '*.js' -not -path '*/node_modules/*' -print0 | xargs -0 -n1 node --check
+
+  # Job 5: pastikan Dockerfile backend bisa membangun image dari kondisi bersih.
+  # Ini juga menjadi dasar pipeline push image ke Docker Hub nanti (SCRUM-100)
+  docker-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image backend
+        run: docker build -t resilient-backend:ci apps/backend
