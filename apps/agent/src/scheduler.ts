@@ -69,7 +69,7 @@ export class Scheduler {
 
   // Memilih pengecek sesuai tipe service. Tipe lain (docker) menyusul di Fase 2.
   private createChecker(service: RemoteService): BaseHealthCheck | null {
-    if (service.type === "http" && service.endpoint_url) {
+    if (service.type?.toLowerCase() === "http" && service.endpoint_url) {
       return new HttpHealthCheck(service.endpoint_url);
     }
     console.warn(`Service ${service.id} dilewati: tipe "${service.type}" belum didukung atau endpoint_url kosong`);

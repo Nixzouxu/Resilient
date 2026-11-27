@@ -67,12 +67,12 @@ export function ServiceTable({
                     color: "var(--rs-text-3)",
                   }}
                 >
-                  <th className="pb-3 font-medium">Layanan</th>
-                  <th className="pb-3 font-medium">Tipe</th>
-                  <th className="pb-3 font-medium">Status</th>
-                  <th className="pb-3 font-medium">Interval</th>
-                  <th className="pb-3 font-medium">Gagal beruntun</th>
-                  <th className="pb-3 font-medium">Terakhir dicek</th>
+                  <th className="py-3 pl-3 pr-4 font-medium">Layanan</th>
+                  <th className="px-3 py-3 font-medium">Tipe</th>
+                  <th className="px-3 py-3 font-medium">Status</th>
+                  <th className="px-3 py-3 font-medium">Interval</th>
+                  <th className="px-3 py-3 font-medium">Gagal beruntun</th>
+                  <th className="py-3 pl-3 pr-3 font-medium">Terakhir dicek</th>
                 </tr>
               </thead>
               <tbody className="divide-y" style={{ borderColor: "var(--rs-line)" }}>
@@ -90,7 +90,7 @@ export function ServiceTable({
                         borderColor: "var(--rs-line)",
                       }}
                     >
-                      <td className="py-3.5 pr-4">
+                      <td className="py-3.5 pl-3 pr-4 align-middle">
                         <p
                           className="font-medium"
                           style={{ color: "var(--rs-text-1)" }}
@@ -104,18 +104,20 @@ export function ServiceTable({
                           {service.endpoint_url || service.container_name || "-"}
                         </p>
                       </td>
-                      <td className="py-3.5 pr-4 text-xs">{service.type}</td>
-                      <td className="py-3.5 pr-4">
+                      <td className="px-3 py-3.5 align-middle text-xs">
+                        {service.type}
+                      </td>
+                      <td className="px-3 py-3.5 align-middle">
                         <StatusBadge status={service.status} />
                       </td>
-                      <td className="py-3.5 pr-4 text-xs">
+                      <td className="px-3 py-3.5 align-middle text-xs">
                         {service.check_interval} detik
                       </td>
-                      <td className="py-3.5 pr-4 text-xs">
+                      <td className="px-3 py-3.5 align-middle text-xs">
                         {service.consecutive_failures}x
                       </td>
                       <td
-                        className="py-3.5 text-xs"
+                        className="py-3.5 pl-3 pr-3 align-middle text-xs"
                         style={{ color: "var(--rs-text-3)" }}
                       >
                         {formatTimeWib(service.last_checked_at)}
