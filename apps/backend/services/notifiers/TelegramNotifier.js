@@ -1,4 +1,4 @@
-const BaseNotifier = require('./baseNotifier');
+const BaseNotifier = require('./BaseNotifier');
 
 class TelegramNotifier extends BaseNotifier {
     #botToken; // Private field (Encapsulation)
