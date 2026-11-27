@@ -8,11 +8,13 @@ const serviceRoutes = require('./routes/service.routes');
 const agentRoutes = require('./routes/agent.routes');
 const overviewRoutes = require('./routes/overview.routes');
 const alertRoutes = require('./routes/alert.routes');
+const logger = require('./services/logger');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(logger.requestMiddleware());
 
 // Inisialisasi TimescaleDB hanya saat jalan di lokal atau Docker (bukan Vercel)
 if (!process.env.VERCEL) {
@@ -35,6 +37,7 @@ app.use('/services', serviceRoutes);
 app.use('/agent', agentRoutes); // memuat rute untuk agent
 app.use('/overview', overviewRoutes); // memuat rute untuk overview
 app.use('/alerts', alertRoutes);
+app.use(logger.errorMiddleware());
 
 
 const PORT = process.env.PORT || 5000;
