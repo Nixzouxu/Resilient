@@ -51,6 +51,26 @@ services:
       NEXT_PUBLIC_API_URL: http://103.150.93.89:3101
     ports:
       - "3100:3000"
+  # Agent berjalan di jaringan Docker yang sama dengan backend,
+  # jadi pemantauan tidak lagi bergantung pada laptop yang bisa tertutup
+  agent:
+    build:
+      context: ./apps/agent
+      dockerfile: Dockerfile
+    container_name: resilient-agent
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      RESILIENT_BACKEND_URL: http://backend:3001
+      RESILIENT_API_KEY: ${AGENT_API_KEY:-}
+
+  # Situs kecil yang sengaja bisa dimatikan saat demo,
+  # untuk membuktikan alur "layanan mati lalu alert terkirim"
+  demo-target:
+    image: nginx:alpine
+    container_name: resilient-demo-target
+    restart: "no"
 
 volumes:
   resilient_pgdata:
