@@ -41,6 +41,7 @@ services:
       # .env di folder yang sama, tidak pernah ditulis nilai asli di file ini,
       # jadi aman di-commit ke Git tanpa membocorkan secret-nya.
       JWT_SECRET: ${JWT_SECRET}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       PORT: "3001"
     ports:
       - "3001:3001"

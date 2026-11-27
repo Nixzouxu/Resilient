@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { pgPool, timescalePool } = require('../config/db');
 const authenticateApiKey = require('../middleware/apiKey.middleware');
+const notificationService = require('../services/notificationService');
+const { ingestLimiter } = require('../middleware/rateLimit.middleware');
 
 // Gunakan API Key Guard untuk SEMUA rute di file ini
 router.use(authenticateApiKey);
@@ -20,8 +22,8 @@ router.get('/services', async (req, res) => {
     }
 });
 
-// 2. POST /health-checks/ingest - Agent mengirim data hasil pantauan
-router.post('/health-checks/ingest', async (req, res) => {
+// 2. POST /agent/health-checks/ingest - Agent mengirim data hasil pantauan
+router.post('/health-checks/ingest', ingestLimiter, async (req, res) => {
     const { serviceId, status, responseTimeMs } = req.body;
     const tenantId = req.tenantId;
 
@@ -30,7 +32,7 @@ router.post('/health-checks/ingest', async (req, res) => {
     }
 
     try {
-        // A. Cek apakah serviceId benar-benar milik suki tersebut
+        // A. Cek apakah serviceId benar-benar milik tenant tersebut
         const serviceRes = await pgPool.query(
             'SELECT * FROM services WHERE id = $1 AND tenant_id = $2',
             [serviceId, tenantId]
@@ -48,11 +50,11 @@ router.post('/health-checks/ingest', async (req, res) => {
         // B. Insert ke TimescaleDB (Time-series)
         await timescalePool.query(
             `INSERT INTO health_checks (time, service_id, tenant_id, status, response_time_ms)
-       VALUES (NOW(), $1, $2, $3, $4)`,
+             VALUES (NOW(), $1, $2, $3, $4)`,
             [serviceId, tenantId, normalizedInputStatus, responseTimeMs]
         );
 
-        // C. Evaluasi threshold (3x down berturut-turut) & normalisasi status (HEALTHY | UNHEALTHY | UNKNOWN) udah difix ya masseh
+        // C. Evaluasi threshold (3x down berturut-turut) & normalisasi status (HEALTHY | UNHEALTHY | UNKNOWN)
         let newFailures = service.consecutive_failures ?? 0;
         let newStatus = ['HEALTHY', 'UNHEALTHY', 'UNKNOWN'].includes(service.status)
             ? service.status
@@ -68,25 +70,59 @@ router.post('/health-checks/ingest', async (req, res) => {
             newStatus = 'HEALTHY';
         }
 
+        const checkedAt = new Date().toISOString();
+
         // D. Update status, consecutive_failures, dan last_checked_at (scoped per tenant_id)
         await pgPool.query(
             `UPDATE services
-       SET consecutive_failures = $1,
-           status = $2,
-           last_checked_at = NOW()
-       WHERE id = $3 AND tenant_id = $4`,
-            [newFailures, newStatus, serviceId, tenantId]
+             SET consecutive_failures = $1,
+                 status = $2,
+                 last_checked_at = $3
+             WHERE id = $4 AND tenant_id = $5`,
+            [newFailures, newStatus, checkedAt, serviceId, tenantId]
         );
 
-        res.json({
+        // E. Kirim notifikasi saat status menjadi UNHEALTHY (dengan cooldown di NotificationService)
+        if (newStatus === 'UNHEALTHY') {
+            try {
+                const tenantRes = await pgPool.query(
+                    'SELECT name, telegram_chat_id FROM tenants WHERE id = $1',
+                    [tenantId]
+                );
+                const tenantRow = tenantRes.rows[0];
+                const telegramChatId = tenantRow?.telegram_chat_id;
+
+                await notificationService.dispatch(
+                    {
+                        tenantId,
+                        tenantName: tenantRow?.name || `Tenant #${tenantId}`,
+                        serviceId: service.id,
+                        serviceName: service.name,
+                        status: newStatus,
+                        timestamp: checkedAt,
+                        time: checkedAt,
+                        action: `Status berubah menjadi UNHEALTHY (${newFailures}x gagal berturut-turut)`
+                    },
+                    {
+                        tenantId,
+                        telegram_chat_id: telegramChatId,
+                        botToken: process.env.TELEGRAM_BOT_TOKEN
+                    }
+                );
+            } catch (alertErr) {
+                console.error('[Alert] Gagal memproses notifikasi:', alertErr.message);
+            }
+        }
+
+        return res.json({
             message: 'Ingest health check berhasil.',
             current_status: newStatus,
             consecutive_failures: newFailures,
-            last_checked_at: new Date().toISOString()
+            last_checked_at: checkedAt
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server error saat ingest data.' });
+        return res.status(500).json({ message: 'Server error saat ingest data.' });
     }
 });
 
