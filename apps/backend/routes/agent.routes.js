@@ -4,6 +4,7 @@ const { pgPool, timescalePool } = require('../config/db');
 const authenticateApiKey = require('../middleware/apiKey.middleware');
 const notificationService = require('../services/notificationService');
 const { ingestLimiter } = require('../middleware/rateLimit.middleware');
+const logger = require('../services/logger');
 
 // Gunakan API Key Guard untuk SEMUA rute di file ini
 router.use(authenticateApiKey);
@@ -17,10 +18,20 @@ router.get('/services', async (req, res) => {
         );
         res.json({ data: result.rows });
     } catch (err) {
-        console.error(err);
+        logger.error('Gagal mengambil data service untuk agent', {
+            tenantId: req.tenantId,
+            error: err.message,
+            stack: err.stack
+        });
         res.status(500).json({ message: 'Gagal mengambil data service untuk agent.' });
     }
 });
+
+// Helper: Validasi response time
+function isValidResponseTime(value) {
+    const num = Number(value);
+    return Number.isFinite(num) && num >= 0;
+}
 
 // 2. POST /agent/health-checks/ingest - Agent mengirim data hasil pantauan
 router.post('/health-checks/ingest', ingestLimiter, async (req, res) => {
@@ -31,10 +42,16 @@ router.post('/health-checks/ingest', ingestLimiter, async (req, res) => {
         return res.status(400).json({ message: 'Payload tidak lengkap.' });
     }
 
+    if (!isValidResponseTime(responseTimeMs)) {
+        return res.status(400).json({ message: 'responseTimeMs harus berupa angka non-negatif.' });
+    }
+
+    const normalizedResponseTime = Number(responseTimeMs);
+
     try {
         // A. Cek apakah serviceId benar-benar milik tenant tersebut
         const serviceRes = await pgPool.query(
-            'SELECT * FROM services WHERE id = $1 AND tenant_id = $2',
+            'SELECT id, name, status, consecutive_failures FROM services WHERE id = $1 AND tenant_id = $2',
             [serviceId, tenantId]
         );
         if (serviceRes.rows.length === 0) {
@@ -51,7 +68,7 @@ router.post('/health-checks/ingest', ingestLimiter, async (req, res) => {
         await timescalePool.query(
             `INSERT INTO health_checks (time, service_id, tenant_id, status, response_time_ms)
              VALUES (NOW(), $1, $2, $3, $4)`,
-            [serviceId, tenantId, normalizedInputStatus, responseTimeMs]
+            [serviceId, tenantId, normalizedInputStatus, normalizedResponseTime]
         );
 
         // C. Evaluasi threshold (3x down berturut-turut) & normalisasi status (HEALTHY | UNHEALTHY | UNKNOWN)
@@ -82,6 +99,15 @@ router.post('/health-checks/ingest', ingestLimiter, async (req, res) => {
             [newFailures, newStatus, checkedAt, serviceId, tenantId]
         );
 
+        // Logger loh ya
+        logger.info('Ingest health check diproses', {
+            tenantId,
+            serviceId,
+            status: normalizedInputStatus,
+            current_status: newStatus,
+            consecutive_failures: newFailures
+        });
+
         // E. Kirim notifikasi saat status menjadi UNHEALTHY (dengan cooldown di NotificationService)
         if (newStatus === 'UNHEALTHY') {
             try {
@@ -110,7 +136,12 @@ router.post('/health-checks/ingest', ingestLimiter, async (req, res) => {
                     }
                 );
             } catch (alertErr) {
-                console.error('[Alert] Gagal memproses notifikasi:', alertErr.message);
+                logger.error('Gagal memproses notifikasi UNHEALTHY', {
+                    tenantId,
+                    serviceId,
+                    error: alertErr.message,
+                    stack: alertErr.stack
+                });
             }
         }
 
@@ -121,7 +152,12 @@ router.post('/health-checks/ingest', ingestLimiter, async (req, res) => {
             last_checked_at: checkedAt
         });
     } catch (err) {
-        console.error(err);
+        logger.error('Server error saat ingest data', {
+            tenantId,
+            serviceId,
+            error: err.message,
+            stack: err.stack
+        });
         return res.status(500).json({ message: 'Server error saat ingest data.' });
     }
 });
