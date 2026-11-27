@@ -2,7 +2,7 @@ import axios from "axios";
 import { config } from "./config";
 import { HealthResult } from "./health-check/base-health-check";
 
-// Bentuk satu service dari backend (GET /agent/agent/services).
+// Bentuk satu service dari backend (GET /agent/services).
 export interface RemoteService {
   id: number;
   type: string;
@@ -18,9 +18,9 @@ export class BackendClient {
   private headers = { "x-api-key": config.apiKey };
 
   async getServices(): Promise<RemoteService[]> {
-    // Path berulang ("/agent/agent/services") karena router dipasang di /agent
+    // Path berulang ("/agent/services") karena router dipasang di /agent
     // dan nama route di dalamnya juga diawali /agent. Sesuai kode backend saat ini.
-    const res = await axios.get(`${config.backendUrl}/agent/agent/services`, {
+    const res = await axios.get(`${config.backendUrl}/agent/services`, {
       headers: this.headers,
       timeout: 5000,
     });
