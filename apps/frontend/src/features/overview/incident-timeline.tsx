@@ -44,42 +44,48 @@ export function IncidentTimeline({ incidents }: IncidentTimelineProps) {
         </div>
       ) : (
         <ol className="space-y-3">
-          {incidents.map((item) => (
-            <li
-              key={item.id}
-              className="rounded-xl border p-3"
-              style={{
-                backgroundColor: "var(--rs-surface-inset)",
-                borderColor: "var(--rs-line)",
-              }}
-            >
-              <div className="flex items-start gap-2.5">
-                <span
-                  className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
-                  style={{
-                    backgroundColor: "var(--rs-bad-soft)",
-                    color: "var(--rs-bad)",
-                  }}
-                >
-                  <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p
-                    className="truncate text-xs font-semibold"
-                    style={{ color: "var(--rs-text-1)" }}
+          {incidents.map((item) => {
+            // Angka ms dibuang: layanan yang tidak merespons tidak punya
+            // latensi yang berarti, jadi angkanya hanya membingungkan
+            const cleanNote = item.note.replace(/\s*\(\s*\d+\s*ms\s*\)/i, "");
+
+            return (
+              <li
+                key={item.id}
+                className="rounded-xl border p-3"
+                style={{
+                  backgroundColor: "var(--rs-surface-inset)",
+                  borderColor: "var(--rs-line)",
+                }}
+              >
+                <div className="flex items-start gap-2.5">
+                  <span
+                    className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                    style={{
+                      backgroundColor: "var(--rs-bad-soft)",
+                      color: "var(--rs-bad)",
+                    }}
                   >
-                    {item.serviceName}
-                  </p>
-                  <p className="mt-0.5 text-xs" style={{ color: "var(--rs-text-2)" }}>
-                    {item.note}
-                  </p>
-                  <p className="mt-1 text-[11px]" style={{ color: "var(--rs-text-3)" }}>
-                    {formatTimeWib(item.time)}
-                  </p>
+                    <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="truncate text-xs font-semibold"
+                      style={{ color: "var(--rs-text-1)" }}
+                    >
+                      {item.serviceName}
+                    </p>
+                    <p className="mt-0.5 text-xs" style={{ color: "var(--rs-text-2)" }}>
+                      {cleanNote}
+                    </p>
+                    <p className="mt-1 text-[11px]" style={{ color: "var(--rs-text-3)" }}>
+                      {formatTimeWib(item.time)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ol>
       )}
     </section>
