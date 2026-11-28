@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   CartesianGrid,
   Line,
@@ -20,16 +21,25 @@ interface LatencyChartProps {
   onSelectService: (serviceId: number) => void;
 }
 
+// Satu titik di grafik. Pemeriksaan yang gagal tidak punya latensi yang berarti
+// (angkanya hanya lama waktu sampai gagal), jadi latencyMs dikosongkan supaya
+// garis terputus, dan titiknya digambar di dasar grafik sebagai penanda gagal.
 interface ChartPoint {
-  timeLabel: string;
+  ts: number;
   fullTime: string;
-  responseTimeMs: number;
-  statusLabel: string;
+  isDown: boolean;
+  latencyMs: number | null;
+  downMarker: number | null;
 }
 
 interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{ payload?: ChartPoint }>;
+}
+
+// Jam singkat untuk sumbu X. Titik dua dipakai agar mudah dibaca (19:09).
+function formatTick(ts: number): string {
+  return formatHourWib(new Date(ts).toISOString()).replace(".", ":");
 }
 
 function LatencyTooltip({ active, payload }: CustomTooltipProps) {
@@ -47,10 +57,19 @@ function LatencyTooltip({ active, payload }: CustomTooltipProps) {
       }}
     >
       <p className="font-medium">{point.fullTime}</p>
-      <p className="mt-1" style={{ color: "var(--rs-text-2)" }}>
-        Latensi: <strong style={{ color: "var(--rs-text-1)" }}>{point.responseTimeMs} ms</strong>
+      {point.isDown ? (
+        <p className="mt-1 font-medium" style={{ color: "var(--rs-bad)" }}>
+          Tidak merespons
+        </p>
+      ) : (
+        <p className="mt-1" style={{ color: "var(--rs-text-2)" }}>
+          Latensi:{" "}
+          <strong style={{ color: "var(--rs-text-1)" }}>{point.latencyMs} ms</strong>
+        </p>
+      )}
+      <p style={{ color: "var(--rs-text-3)" }}>
+        Status: {point.isDown ? "Bermasalah" : "Sehat"}
       </p>
-      <p style={{ color: "var(--rs-text-3)" }}>Status: {point.statusLabel}</p>
     </div>
   );
 }
@@ -62,12 +81,30 @@ export function LatencyChart({
   isLoading,
   onSelectService,
 }: LatencyChartProps) {
-  const chartData: ChartPoint[] = healthChecks.map((item) => ({
-    timeLabel: formatHourWib(item.time),
-    fullTime: formatTimeWib(item.time),
-    responseTimeMs: item.response_time_ms,
-    statusLabel: item.status.toLowerCase() === "up" ? "Sehat" : "Bermasalah",
-  }));
+  const { chartData, failedCount } = useMemo(() => {
+    // Diurutkan dari yang terlama supaya garis selalu digambar searah waktu
+    const sorted = [...healthChecks].sort(
+      (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
+    );
+
+    const points: ChartPoint[] = sorted
+      .map((item) => {
+        const isDown = item.status.toLowerCase() !== "up";
+        return {
+          ts: new Date(item.time).getTime(),
+          fullTime: formatTimeWib(item.time),
+          isDown,
+          latencyMs: isDown ? null : item.response_time_ms,
+          downMarker: isDown ? 0 : null,
+        };
+      })
+      .filter((point) => !Number.isNaN(point.ts));
+
+    return {
+      chartData: points,
+      failedCount: points.filter((point) => point.isDown).length,
+    };
+  }, [healthChecks]);
 
   return (
     <section className="rs-dash-card flex flex-col p-5 sm:p-6">
@@ -132,21 +169,27 @@ export function LatencyChart({
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}
-              margin={{ top: 8, right: 12, left: -12, bottom: 0 }}
+              margin={{ top: 8, right: 24, left: -12, bottom: 0 }}
             >
               <CartesianGrid
                 stroke="var(--rs-line)"
                 strokeDasharray="3 3"
                 vertical={false}
               />
+              {/* Sumbu waktu numerik: label tersebar rata dan tidak berulang */}
               <XAxis
-                dataKey="timeLabel"
+                dataKey="ts"
+                type="number"
+                scale="time"
+                domain={["dataMin", "dataMax"]}
+                tickFormatter={formatTick}
+                tickCount={5}
                 tick={{ fill: "var(--rs-text-3)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
-                minTickGap={24}
               />
               <YAxis
+                domain={[0, (dataMax: number) => Math.max(Math.ceil(dataMax / 10) * 10, 20)]}
                 tick={{ fill: "var(--rs-text-3)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
@@ -155,16 +198,52 @@ export function LatencyChart({
               <Tooltip content={<LatencyTooltip />} />
               <Line
                 type="stepAfter"
-                dataKey="responseTimeMs"
+                dataKey="latencyMs"
                 stroke="var(--rs-accent)"
                 strokeWidth={2}
                 dot={false}
+                connectNulls={false}
+                isAnimationActive={false}
                 activeDot={{ r: 4, fill: "var(--rs-accent)" }}
+              />
+              {/* Penanda gagal: hanya titik di dasar grafik, tanpa garis */}
+              <Line
+                dataKey="downMarker"
+                stroke="none"
+                dot={{ r: 3.5, fill: "var(--rs-bad)", stroke: "none" }}
+                activeDot={{ r: 5, fill: "var(--rs-bad)" }}
+                isAnimationActive={false}
+                legendType="none"
               />
             </LineChart>
           </ResponsiveContainer>
         )}
       </div>
+
+      {/* Legenda memakai teks, jadi artinya tidak bergantung pada warna saja */}
+      {!isLoading && chartData.length > 0 && (
+        <ul
+          className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs"
+          style={{ color: "var(--rs-text-2)" }}
+        >
+          <li className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="inline-block h-0.5 w-4 rounded"
+              style={{ backgroundColor: "var(--rs-accent)" }}
+            />
+            Latensi pemeriksaan yang berhasil
+          </li>
+          <li className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: "var(--rs-bad)" }}
+            />
+            Gagal merespons ({failedCount}), ditandai di dasar grafik
+          </li>
+        </ul>
+      )}
     </section>
   );
 }
