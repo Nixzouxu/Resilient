@@ -1,0 +1,58 @@
+/* Gaya landing Resilient. Semua warna dari token di landing-tokens.css, jadi dua tema otomatis. */
+.rs-land { position: relative; display: flow-root; min-height: 100vh; overflow-x: clip; line-height: 1.6; background: var(--rs-bg); }
+.rs-land p { color: var(--rs-text-2); }
+.rs-glow { position: absolute; inset: 0 0 auto 0; height: 900px; background: var(--rs-glow); pointer-events: none; }
+
+.rs-nav { position: sticky; top: 12px; z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  max-width: 1120px; margin: 12px auto 0; padding: 10px 12px 10px 18px; border: 1px solid var(--rs-line); border-radius: var(--rs-r-pill);
+  background: color-mix(in srgb, var(--rs-bg) 74%, transparent); backdrop-filter: blur(16px); }
+.rs-link { color: var(--rs-text-2); transition: color .2s; }
+.rs-link:hover { color: var(--rs-text-1); }
+
+.rs-btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: var(--rs-r-pill); font-size: 14px; font-weight: 600; transition: transform .25s var(--rs-ease), box-shadow .25s, background .2s; }
+.rs-btn:hover { transform: translateY(-2px); }
+/* Teks gelap di atas gradien terang supaya kontrasnya lolos AA di kedua tema */
+.rs-btn-grad { background: var(--rs-grad); color: #0a0e22; box-shadow: 0 10px 30px -12px rgba(120, 120, 255, .7); }
+.rs-btn-ghost { border: 1px solid var(--rs-line-strong); color: var(--rs-text-1); background: transparent; }
+.rs-btn-ghost:hover { background: var(--rs-surface); }
+.rs-icon-btn { display: inline-flex; height: 38px; width: 38px; align-items: center; justify-content: center; border-radius: var(--rs-r-pill); border: 1px solid var(--rs-line-strong); color: var(--rs-text-1); }
+.rs-pill { display: inline-flex; padding: 6px 14px; border-radius: var(--rs-r-pill); border: 1px solid var(--rs-line-strong); font-size: 12px; font-weight: 500; color: var(--rs-text-2); }
+.rs-pill-grad { background: var(--rs-grad); border-color: transparent; color: #0a0e22; font-weight: 600; }
+
+.rs-display, .rs-display-sm, .rs-title { font-family: var(--rs-font-display); font-weight: 400; color: var(--rs-text-1); letter-spacing: -0.015em; }
+.rs-display { font-size: clamp(2.7rem, 6vw, 4.7rem); line-height: 1.02; }
+.rs-display-sm { font-size: clamp(1.7rem, 3.4vw, 2.6rem); line-height: 1.2; }
+.rs-title { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.1; }
+.rs-display em { font-style: normal; background: var(--rs-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.rs-hero-line { display: block; overflow: hidden; padding-bottom: .1em; margin-bottom: -.1em; }
+.rs-hero-line > span { display: block; }
+.rs-display-sm .rs-word { color: var(--rs-text-1); }
+
+.rs-card { background: var(--rs-surface); border: 1px solid var(--rs-line); border-radius: var(--rs-r-card); box-shadow: var(--rs-shadow); }
+.rs-icon { display: inline-flex; height: 44px; width: 44px; align-items: center; justify-content: center; border-radius: 14px; border: 1px solid var(--rs-line-strong); color: var(--rs-accent); background: var(--rs-surface); }
+.rs-col { position: relative; padding-left: 22px; }
+.rs-col-line { position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: linear-gradient(var(--rs-accent), transparent); transform-origin: top; }
+.rs-soon { padding: 2px 8px; border-radius: var(--rs-r-pill); border: 1px solid var(--rs-line-strong); font-size: 11px; font-weight: 500; color: var(--rs-text-2); }
+
+/* Kartu paket: cahaya mengikuti kursor (--mx, --my diatur GSAP) */
+.rs-plan { position: relative; border-radius: var(--rs-r-card); transform-style: preserve-3d; will-change: transform; }
+.rs-spot::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--rs-accent) 20%, transparent), transparent 60%); }
+.rs-spot:hover::before { opacity: 1; }
+.rs-plan-featured { border: 1.5px solid transparent; box-shadow: var(--rs-shadow), 0 0 60px -20px rgba(139, 123, 247, .55);
+  background: linear-gradient(var(--rs-surface), var(--rs-surface)) padding-box, var(--rs-grad) border-box; }
+.rs-num { font-family: var(--rs-font-display); font-size: 1.4rem; color: var(--rs-text-3); }
+
+.rs-cta { background: var(--rs-surface); }
+.rs-shard { min-height: 220px; border-radius: 18px; border: 1px solid var(--rs-line);
+  background: radial-gradient(70% 70% at 70% 30%, rgba(139, 123, 247, .55), transparent 70%), linear-gradient(135deg, var(--rs-surface-2), transparent); }
+
+/* Keadaan awal animasi. Hanya aktif kalau pengguna tidak mematikan animasi,
+   jadi pengguna reduced-motion langsung melihat semuanya tampil. */
+@media (prefers-reduced-motion: no-preference) {
+  .rs-in, .rs-reveal { opacity: 0; }
+  /* Hanya opacity di CSS. Posisi awal (yPercent, scaleY) diberikan GSAP lewat fromTo,
+     karena transform dari CSS dan GSAP saling bertabrakan dan membuat judul tak terlihat */
+  .rs-hero-line > span, .rs-col-line { opacity: 0; }
+  .rs-word { opacity: .22; }
+}

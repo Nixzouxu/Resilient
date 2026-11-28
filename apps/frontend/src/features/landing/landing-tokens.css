@@ -1,0 +1,53 @@
+/*
+  Token landing page Resilient. Satu keluarga dengan dashboard dan halaman auth:
+  tema dipasang lewat atribut data-theme di pembungkus .rs-land,
+  pilihan tersimpan di localStorage "resilient_theme", bawaan gelap.
+  Warna aksen diambil dari logo (biru ke ungu).
+*/
+.rs-land {
+  --rs-font-ui: "Schibsted Grotesk Variable", "Schibsted Grotesk", system-ui, sans-serif;
+  --rs-font-display: "Instrument Serif", Georgia, serif;
+  --rs-r-card: 20px;
+  --rs-r-pill: 999px;
+  --rs-ease: cubic-bezier(0.22, 0.8, 0.3, 1);
+  --rs-grad: linear-gradient(135deg, #4f8cff 0%, #8b7bf7 55%, #b57bf0 100%);
+  font-family: var(--rs-font-ui);
+  background: var(--rs-bg);
+  color: var(--rs-text-2);
+}
+.rs-land[data-theme="dark"] {
+  color-scheme: dark;
+  --rs-bg: #070918;
+  --rs-surface: #10152a;
+  --rs-surface-2: #0b0f20;
+  --rs-line: rgba(170, 190, 255, 0.14);
+  --rs-line-strong: rgba(170, 190, 255, 0.28);
+  --rs-text-1: #e3e8f7;
+  --rs-text-2: #aab2c8;
+  --rs-text-3: #8c93aa;
+  --rs-accent: #8392f7;
+  --rs-on-accent: #0a0e22;
+  --rs-ok: #5fd0a0;
+  --rs-glow: radial-gradient(55% 45% at 72% 8%, rgba(110, 125, 255, 0.22), transparent 70%);
+  --rs-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.7);
+}
+.rs-land[data-theme="light"] {
+  color-scheme: light;
+  --rs-bg: #f3f5fc;
+  --rs-surface: #fbfcff;
+  --rs-surface-2: #eceffa;
+  --rs-line: rgba(52, 60, 94, 0.12);
+  --rs-line-strong: rgba(52, 60, 94, 0.26);
+  --rs-text-1: #2b3252;
+  --rs-text-2: #4d5578;
+  --rs-text-3: #646c8e;
+  --rs-accent: #4350c4;
+  --rs-on-accent: #ffffff;
+  --rs-ok: #1c7f55;
+  --rs-glow: radial-gradient(55% 45% at 72% 8%, rgba(67, 80, 196, 0.12), transparent 70%);
+  --rs-shadow: 0 24px 50px -30px rgba(52, 60, 94, 0.35);
+}
+.rs-land :focus-visible { outline: 2px solid var(--rs-accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .rs-land * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
