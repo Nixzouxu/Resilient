@@ -30,6 +30,25 @@ app.get('/', (req, res) => {
     res.json({ status: 'ok', service: 'Resilient Backend API' });
 });
 
+// Urusan CORS agar hanya mengizinkan origin tertentu (misal frontend) 
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+app.use(
+    cors({
+        origin(origin, callback) {
+            // Izinkan request non-browser / tanpa header Origin atau saat FRONTEND_ORIGIN belum diset (lokal) nanti diubah ya mas amba
+            if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error(`Origin ${origin} tidak diizinkan oleh CORS.`));
+        },
+        credentials: true
+    })
+);
+
 // Main Routes
 app.use('/auth', authRoutes);
 app.use('/services', serviceRoutes);
